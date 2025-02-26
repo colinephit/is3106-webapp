@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 const connectDB = require("./db/conn");
 
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 4000;
 
 // cors middleware
 app.use(credentials);
@@ -29,6 +29,7 @@ app.use("/recipes", require("./routes/recipeRoutes"));
 app.use("/blog", require("./routes/blogRoutes"));
 app.use("/stripe", require("./routes/subscriptionRoutes"));
 app.use("/upload", require("./routes/imageRoutes"));
+app.use("/ingredient", require("./routes/ingredientRoutes"));
 
 app.use(errorHandler);
 

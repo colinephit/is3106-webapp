@@ -1,4 +1,5 @@
 const Recipe = require("../models/recipeModel");
+const Ingredient = require("../models/ingredientModel");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
@@ -109,7 +110,21 @@ const addRecipe = async (req, res, next) => {
         ) {
             return res.status(422).json({ message: "Insufficient data" });
         }
-        const recipe = Recipe({ ...req.body, author: req.user });
+        // to validate that all ingredient IDs exist
+        const validIngredients = await Ingredient.find({
+            _id: { $in: ingredients },
+        });
+
+        if (validIngredients.length !== ingredients.length) {
+            return res.status(400).json({ message: "One or more ingredients are invalid" });
+        }
+
+        //  to create recipe with all verified ingredient IDs
+        const recipe = new Recipe({
+            ...req.body,
+            ingredients: validIngredients.map((ingredi) => ingredi._id),
+            author: req.user,
+        });
         await recipe.save();
         res.status(201).json({ success: "Recipe added successfully" });
     } catch (error) {
