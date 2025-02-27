@@ -75,12 +75,12 @@ const getRecipe = async (req, res, next) => {
             .populate("categories")
             .populate("ratings", "rating");
 
-        if (!recipe)
-            return res.status(404).json({ message: "Recipe not found" });
+        if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
         res.status(200).send(recipe);
     } catch (error) {
-        next(error);
+        console.error("Error fetching recipe:", error);
+        res.status(500).json({ message: "Server error" });
     }
 };
 
@@ -285,10 +285,7 @@ const deleteComment = async (req, res, next) => {
 
 const toggleFavoriteRecipe = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user).populate(
-            "roleId",
-            "roleName"
-        );
+        const user = await User.findById(req.user).populate("roleId", "roleName");
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
