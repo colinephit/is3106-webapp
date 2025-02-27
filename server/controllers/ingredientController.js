@@ -26,8 +26,8 @@ const defaultIngredients = [
     { ingredientName: "Fish Sauce" },
 ];
 
-// to fetch all ingredients (supports search query and sorting alphabetically)
-exports.getAllIngredients = async (req, res) => {
+// to search all ingredients (supports search query and sorting alphabetically)
+exports.searchIngredients = async (req, res) => {
     try {
         const searchQuery = req.query.search || ""; // to get search term from query parameter
         const regex = new RegExp(searchQuery, "i"); // for case-insensitive regex
@@ -41,6 +41,7 @@ exports.getAllIngredients = async (req, res) => {
         res.status(500).json({ message: "Error fetching ingredients", error: error.message });
     }
 };
+
 
 // to add a new ingredient (only if not already present)
 exports.addIngredient = async (req, res) => {
@@ -88,7 +89,7 @@ exports.initializeDefaultIngredients = async () => {
 
         if (existingIngredients.length === 0) {
             await Ingredient.insertMany(defaultIngredients);
-            console.log("✅ Default ingredients initialized");
+            console.log("Default ingredients initialized");
         } else {
             console.log("Default ingredients already exist. No need to initialize.");
         }
