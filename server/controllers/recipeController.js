@@ -332,7 +332,7 @@ const toggleFavoriteRecipe = async (req, res, next) => {
 };
 
 // to search for recipes based on user's selected ingredients in home page
-exports.searchRecipesByIngredients = async (req, res) => {
+const searchRecipesByIngredients = async (req, res) => {
   try {
     let { ingredients } = req.body; // expects an array of ingredient IDs that user selected
 
@@ -365,12 +365,10 @@ exports.searchRecipesByIngredients = async (req, res) => {
     });
 
     if (filteredRecipes.length === 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Too many missing ingredients. Try removing some ingredients from your search.",
-        });
+      return res.status(400).json({
+        message:
+          "Too many missing ingredients. Try removing some ingredients from your search.",
+      });
     }
 
     res.status(200).json(filteredRecipes);
@@ -392,4 +390,5 @@ module.exports = {
   deleteComment,
   toggleFavoriteRecipe,
   getTopRecipes,
+  searchRecipesByIngredients,
 };
