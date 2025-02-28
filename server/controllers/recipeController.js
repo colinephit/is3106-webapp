@@ -1,4 +1,5 @@
 const Recipe = require("../models/recipeModel");
+const Ingredient = require("../models/ingredientModel");
 const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
@@ -109,7 +110,30 @@ const addRecipe = async (req, res, next) => {
     ) {
       return res.status(422).json({ message: "Insufficient data" });
     }
-    const recipe = Recipe({ ...req.body, author: req.user });
+    // to validate that all ingredient IDs exist
+    const validIngredients = await Ingredient.find({
+      _id: { $in: ingredients },
+    });
+
+    if (validIngredients.length !== ingredients.length) {
+      return res
+        .status(400)
+        .json({ message: "One or more ingredients are invalid" });
+    }
+
+    // to validate category ID
+    const validCategory = await Category.findById(category);
+    if (!validCategory) {
+      return res.status(400).json({ message: "Invalid category" });
+    }
+
+    //  to create recipe with all verified ingredient IDs and category ID
+    const recipe = new Recipe({
+      ...req.body,
+      ingredients: validIngredients.map((ingredi) => ingredi._id),
+      category: validCategory._id,
+      author: req.user,
+    });
     await recipe.save();
     res.status(201).json({ success: "Recipe added successfully" });
   } catch (error) {
@@ -177,8 +201,8 @@ const rateRecipe = async (req, res, next) => {
     }
 
     // Check if the user has already rated this recipe
-    const existingRating = recipe.ratings.find((rate) =>
-      rate.user.equals(req.user) // Check if the user has rated this recipe
+    const existingRating = recipe.ratings.find(
+      (rate) => rate.user.equals(req.user) // Check if the user has rated this recipe
     );
 
     // If the user has already rated, update the rating
@@ -304,6 +328,56 @@ const toggleFavoriteRecipe = async (req, res, next) => {
     return res.status(201).json({ accessToken });
   } catch (error) {
     next(error);
+  }
+};
+
+// to search for recipes based on user's selected ingredients in home page
+exports.searchRecipesByIngredients = async (req, res) => {
+  try {
+    let { ingredients } = req.body; // expects an array of ingredient IDs that user selected
+
+    if (
+      !ingredients ||
+      !Array.isArray(ingredients) ||
+      ingredients.length === 0
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Please select at least one ingredient" });
+    }
+
+    // find all recipes that contain at least some of the selected ingredients
+    const recipes = await Recipe.find({ ingredients: { $in: ingredients } })
+      .populate("ingredients")
+      .populate("author", "firstName lastName")
+      .populate("ratings", "rating")
+      .sort({ createdAt: -1 });
+
+    // filter recipes based on missing ingredient count
+    const filteredRecipes = recipes.filter((recipe) => {
+      const recipeIngredientIds = recipe.ingredients.map((thing) =>
+        thing._id.toString()
+      );
+      const missingCount = ingredients.filter(
+        (thingId) => !recipeIngredientIds.includes(thingId)
+      ).length;
+      return missingCount <= 5; // we should allow up to 5 missing ingredients, else cant be made?
+    });
+
+    if (filteredRecipes.length === 0) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Too many missing ingredients. Try removing some ingredients from your search.",
+        });
+    }
+
+    res.status(200).json(filteredRecipes);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error searching recipes", error: error.message });
   }
 };
 
