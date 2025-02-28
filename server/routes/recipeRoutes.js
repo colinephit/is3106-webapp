@@ -68,7 +68,6 @@ router
   );
 
 // to search for recipes using selected ingredients
-router.post("/search", [verifyJwt], searchRecipesByIngredients);
-
+//router.post("/search", [verifyJwt], searchRecipesByIngredients);
 
 module.exports = router;
