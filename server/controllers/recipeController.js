@@ -328,7 +328,7 @@ const toggleFavoriteRecipe = async (req, res, next) => {
 };
 
 // to search for recipes based on user's selected ingredients in home page
-exports.searchRecipesByIngredients = async (req, res) => {
+const searchRecipesByIngredients = async (req, res) => {
     try {
         let { ingredients } = req.body; // expects an array of ingredient IDs that user selected
 
@@ -372,4 +372,5 @@ module.exports = {
     deleteComment,
     toggleFavoriteRecipe,
     getTopRecipes,
+    searchRecipesByIngredients
 };
