@@ -66,7 +66,7 @@ const AddRecipe = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formDetails.image) return toast.error("Upload recipe image");
+    //if (!formDetails.image) return toast.error("Upload recipe image");
     if (!formDetails.ingredients.length)
       return toast.error("Ingredients cannot be empty");
     if (!formDetails.instructions.length)
@@ -202,7 +202,7 @@ const AddRecipe = () => {
               htmlFor="cookingTime"
               className="text-sm font-semibold mb-3 basis-1/2"
             >
-              Cooking time
+              Cooking time (in minutes)
             </label>
             <div className="flex flex-col basis-1/2">
               <input

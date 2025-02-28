@@ -76,8 +76,8 @@ const SingleRecipe = () => {
         rateRecipe({ rating: newValue, recipeId: id }).unwrap(),
         {
           pending: "Please wait...",
-          success: "Rating added successfully",
-          error: "You have already rating this recipe",
+          success: "Rating successfully updated",
+          error: "You have already rated this recipe",
         }
       );
     } catch (error) {

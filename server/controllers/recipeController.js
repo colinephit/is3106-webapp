@@ -178,15 +178,17 @@ const rateRecipe = async (req, res, next) => {
 
     // Check if the user has already rated this recipe
     const existingRating = recipe.ratings.find((rate) =>
-      rate.user.equals(req.user)
+      rate.user.equals(req.user) // Check if the user has rated this recipe
     );
+
+    // If the user has already rated, update the rating
     if (existingRating) {
-      return res
-        .status(400)
-        .json({ message: "User has already rated this recipe" });
+      existingRating.rating = rating;
+      await recipe.save();
+      return res.status(200).json({ message: "Rating updated successfully." });
     }
 
-    // Add the new rating
+    // If user had not previously rated, add the new rating
     recipe.ratings.push({ user: req.user, rating: rating });
     await recipe.save();
 
