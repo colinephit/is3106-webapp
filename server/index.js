@@ -35,6 +35,7 @@ app.use("/blog", require("./routes/blogRoutes"));
 app.use("/stripe", require("./routes/subscriptionRoutes"));
 app.use("/upload", require("./routes/imageRoutes"));
 app.use("/ingredient", require("./routes/ingredientRoutes"));
+app.use("/category", require("./routes/categoryRoutes"));
 
 app.use(errorHandler);
 
