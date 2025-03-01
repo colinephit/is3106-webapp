@@ -104,7 +104,7 @@ function App() {
 
                 <Route
                   element={
-                    <RequireAuth allowedRoles={[ROLES.ProUser, ROLES.Admin]} />
+                    <RequireAuth allowedRoles={[ROLES.BasicUser, ROLES.Admin]} />
                   }
                 >
                   <Route
@@ -136,7 +136,7 @@ function App() {
                 />
                 <Route
                   element={
-                    <RequireAuth allowedRoles={[ROLES.ProUser, ROLES.Admin]} />
+                    <RequireAuth allowedRoles={[ROLES.BasicUser, ROLES.Admin]} />
                   }
                 >
                   <Route

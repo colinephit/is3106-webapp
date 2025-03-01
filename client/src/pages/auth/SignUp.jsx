@@ -105,7 +105,7 @@ const SignUp = () => {
             label={"Email"}
             placeholder={"example@abc.com"}
             errorMessage={"Enter a valid email address!"}
-            pattern={/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/}
+            pattern={/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/}
           />
           <Input
             type={"text"}
