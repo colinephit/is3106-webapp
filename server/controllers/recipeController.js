@@ -8,7 +8,8 @@ const getAllRecipes = async (req, res, next) => {
     const recipes = await Recipe.find()
       .sort({ createdAt: -1 })
       .populate("author", "firstName lastName")
-      .populate("ratings", "rating");
+      .populate("ratings", "rating")
+      .populate("comments.user", "firstName lastName profileImage");
     res.status(200).send(recipes);
   } catch (error) {
     next(error);
@@ -70,12 +71,15 @@ const getRecipe = async (req, res, next) => {
   try {
     const recipe = await Recipe.findOne({ _id: req.params.id })
       .populate("author", "firstName lastName")
-      .populate("comments.user", ["name", "profileImage"])
+      .populate("comments.user", "firstName lastName profileImage")
       .populate("ingredients")
       .populate("categories")
-      .populate("ratings", "rating");
+      .populate("ratings", "rating")
+      .lean();
 
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+    console.log("Recipe Data:", JSON.stringify(recipe, null, 2));
 
     res.status(200).send(recipe);
   } catch (error) {
@@ -265,6 +269,8 @@ const addComment = async (req, res, next) => {
 const deleteComment = async (req, res, next) => {
   try {
     const { recipeId, commentId } = req.params;
+
+    console.log("inside controller the recipe id is: " + recipeId);
 
     const recipe = await Recipe.findById(recipeId);
     if (!recipe) {

@@ -60,9 +60,12 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     deleteCommentRecipe: builder.mutation({
       query: (args) => {
-        const { recipeId, commentId } = args;
+        const { _id, commentId } = args;
+        console.log(
+          "deleting comment id: " + commentId + ", for recipe: " + _id
+        );
         return {
-          url: `/recipe/comment/${recipeId}/${commentId}`,
+          url: `/recipes/comment/${_id}/${commentId}`,
           method: "DELETE",
         };
       },

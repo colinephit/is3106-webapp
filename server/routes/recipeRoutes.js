@@ -60,6 +60,8 @@ router
     deleteComment
   );
 
+// router.route("/comment/:recipeId/:commentId").delete(deleteComment);
+
 router
   .route("/favorite/:id")
   .put(
