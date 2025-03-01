@@ -11,7 +11,7 @@ const Recipe = () => {
   useTitle("Recipen - All Recipes");
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && data) {
       dispatch(setRecipes(data));
     }
   }, [isLoading]);
