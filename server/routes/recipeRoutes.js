@@ -10,6 +10,7 @@ const {
   deleteComment,
   toggleFavoriteRecipe,
   getTopRecipes,
+  searchRecipesByIngredients,
 } = require("../controllers/recipeController");
 const ROLES_LIST = require("../config/rolesList");
 const verifyJwt = require("../middleware/verifyJwt");
@@ -65,5 +66,9 @@ router
     [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
     toggleFavoriteRecipe
   );
+
+// to search for recipes using selected ingredients
+router.post("/search", [verifyJwt], searchRecipesByIngredients);
+
 
 module.exports = router;

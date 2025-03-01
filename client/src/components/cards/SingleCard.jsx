@@ -78,41 +78,34 @@ const SingleCard = ({ singleData, type }) => {
           {/* Card image */}
           <img
             src={singleData?.image}
-            alt={singleData?.title}
+            alt={singleData?.recipeName}
             className="w-full object-cover object-center rounded-t"
           />
           {/* Overlay */}
           <div className="absolute bottom-0 left-0 w-full backdrop-blur-sm bg-[#fffcf5d3] p-4 flex justify-between">
-            <h4 className="font-bold">{singleData?.author?.name}</h4>
-            <span className="text-sm">{formattedDate}</span>
+            <h4 className="font-bold">By: {singleData?.author?.firstName}</h4>
+            {/* no date in schema? <span className="text-sm">{formattedDate}</span> */} 
           </div>
         </div>
         {/* Card Bottom details */}
         <div className="flex flex-col gap-3 p-4">
           {/* Card heading */}
-          <h4 className="font-bold text-lg">{singleData?.title}</h4>
+          <Link to={`/${type}/${singleData?._id}`} className="font-bold text-lg hover:text-primary">
+            {singleData?.recipeName}
+          </Link>
           {/* Card description */}
           <p className="text-sm">
             {singleData?.description.substring(0, 100)}...
           </p>
           {/* Card rating */}
           {type === "recipe" && (
-            <Rating
-              value={averageRating}
-              readOnly
-              size={"medium"}
-            />
+            <div className="flex flex-col">
+              <span className="font-semibold">Average Rating:</span>
+              <Rating value={averageRating} readOnly size={"medium"} className="mt-1" />
+            </div>
           )}
         </div>
       </div>
-      {/* Read more link */}
-      <Link
-        to={`/${type}/${singleData?._id}`}
-        className="flex gap-2 items-center p-4 mt-4 max-w-max hover:border-primary hover:text-primary"
-      >
-        Read more
-        <BsArrowUpRight />
-      </Link>
     </div>
   );
 };

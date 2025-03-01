@@ -1,34 +1,34 @@
-import axios from "axios";
-
+// changed implementation to support new image storage logic
 const uploadImage = async (e, setProgress, setFormDetails, formDetails) => {
-  if (
-    e.target.files[0].type === "image/jpeg" ||
-    e.target.files[0].type === "image/png"
-  ) {
-    const data = new FormData();
-    data.append("file", e.target.files[0]);
+  e.preventDefault();
 
-    data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_PRESET);
+  const files = e.target.files;
+  if (!files || files.length === 0) {
+    console.error("No file selected");
+    return;
+  }
 
-    const config = {
-      onUploadProgress: (e) => {
-        const { loaded, total } = e;
-        setProgress((loaded / total) * 100);
-      },
-    };
+  console.log("Uploading file:", files[0]); // Debugging log
 
-    data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
+  const formData = new FormData();
+  formData.append("image", files[0]); // Must match multer field name
 
-    const {
-      data: { url },
-    } = await axios.post(
-      import.meta.env.VITE_CLOUDINARY_BASE_URL,
-      data,
-      config
-    );
-    setFormDetails({ ...formDetails, [e.target.id]: url });
-  } else {
-    console.error("Please select an image in jpeg or png format");
+  try {
+    const response = await fetch("http://localhost:4000/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload image.");
+    }
+
+    const data = await response.json();
+    console.log("Upload successful. Server response:", data);
+
+    setFormDetails({ ...formDetails, image: data.imageName });
+  } catch (error) {
+    console.error("Error uploading image:", error);
   }
 };
 

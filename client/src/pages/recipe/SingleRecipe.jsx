@@ -77,7 +77,7 @@ const SingleRecipe = () => {
         {
           pending: "Please wait...",
           success: "Rating successfully updated",
-          error: "You have already rated this recipe",
+          error: "Error rating recipe",
         }
       );
     } catch (error) {
@@ -173,14 +173,14 @@ const SingleRecipe = () => {
             <div className="basis-1/3">
               <img
                 src={data?.image}
-                alt={data?.title}
+                alt={data?.recipeName}
                 className="rounded w-full"
               />
             </div>
             {/* Recipe details */}
             <div className="basis-2/3 flex flex-col gap-2">
               <div className="flex justify-between">
-                <h2 className="font-bold text-xl md:text-3xl">{data?.title}</h2>
+                <h2 className="font-bold text-xl md:text-3xl">{data?.recipeName}</h2>
                 {data?.author?._id === user?.userId && (
                   <>
                     <IconButton
@@ -214,7 +214,9 @@ const SingleRecipe = () => {
               <div className="flex justify-between items-center">
                 <p className="flex gap-2 items-center font-semibold">
                   <LuChefHat className="text-primary" />
-                  {data?.author?.name}
+                  {data?.author?.firstName && data?.author?.lastName 
+                    ? `${data.author.firstName}, ${data.author.lastName}` 
+                    : "Author name not available"}
                 </p>
                 <div className="flex gap-2 p-2 bg-light rounded-l-lg">
                   {user?.favorites?.some((ele) => ele === id) ? (
@@ -251,20 +253,20 @@ const SingleRecipe = () => {
                 </div>
                 <div className="flex flex-col gap-1 items-center text-gray-800">
                   <LiaWeightSolid className="text-5xl" />
-                  <h3 className="font-bold text-xl text-primary">Calories</h3>
-                  <p>{data?.calories} cal</p>
+                  <h3 className="font-bold text-xl text-primary">Difficulty Level</h3>
+                  <p>{data?.difficultyLevel} / 5</p>
                 </div>
               </div>
             </div>
           </div>
           <hr />
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Recipe Ingredients */}
             <div className="basis-1/3 flex flex-col gap-4 border-b-2 md:border-b-0 pb-4 md:pb-0 md:border-r-2 border-gray-200 items-center">
               <h3 className="font-bold text-2xl">Ingredients</h3>
+              {console.log('Ingredients Data:', data?.ingredients)} {/* Log ingredients */}
               <ol className="flex flex-col gap-2 list-decimal ml-5">
                 {data?.ingredients?.map((ingredient, i) => (
-                  <li key={`ingredient-${i + 1}`}>{ingredient}</li>
+                  <li key={`ingredient-${i + 1}`}>{ingredient.name}</li>
                 ))}
               </ol>
             </div>
@@ -283,20 +285,16 @@ const SingleRecipe = () => {
           </div>
           <hr />
           {/* Rate recipe */}
-          {!data?.ratings?.some((obj) => obj.user === user?.userId) && (
-            <>
-              <div className="my-6 w-full sm:w-2/3 md:w-1/2 mx-auto flex justify-between gap-6">
-                <h3 className="font-bold text-2xl">Rate the recipe</h3>
-                <Rating
-                  size={"large"}
-                  precision={0.25}
-                  value={rating}
-                  onChange={handleRating}
-                />
-              </div>
-              <hr />
-            </>
-          )}
+          <div className="my-6 w-full sm:w-2/3 md:w-1/2 mx-auto flex justify-between gap-6">
+            <h3 className="font-bold text-2xl">Rate the recipe</h3>
+            <Rating
+              size={"large"}
+              precision={0.25}
+              value={rating}
+              onChange={handleRating}
+            />
+          </div>
+          <hr />
           {/* Recipe comment form */}
           <div className="my-10 w-full sm:w-2/3 md:w-1/2 mx-auto flex flex-col gap-6">
             <h3 className="font-bold text-2xl">Leave a Reply</h3>
@@ -359,6 +357,7 @@ const SingleRecipe = () => {
                   <Comment
                     key={comment?._id}
                     comment={comment}
+                    user={comment?.user}
                     userId={user?.userId}
                     handleDeleteComment={handleDeleteComment}
                   />

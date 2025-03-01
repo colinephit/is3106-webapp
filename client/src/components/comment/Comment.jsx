@@ -26,14 +26,15 @@ const Comment = ({ comment, userId, handleDeleteComment }) => {
     <div className="border-2 border-gray-200 rounded-xl flex flex-col sm:flex-row gap-4 p-6 items-center">
       {/* Commented user details */}
       <MuiAvatar
-        alt={comment?.user?.name}
+        alt={comment?.user?.firstName}
         src={comment?.user?.profilePicture}
         sx={{ width: 60, height: 60 }}
         className="border-2 border-primary shadow-lg"
       />
       <div className="flex flex-col gap-1 w-full">
         <div className="flex justify-between flex-col sm:flex-row items-center">
-          <h4 className="font-bold text-lg">{comment?.user?.name}</h4>
+          {console.log(comment?.user?.firstName)}
+          <h4 className="font-bold text-lg">{comment?.user?.firstName}</h4>
           <span className="flex gap-2 items-center text-sm">
             <BsCalendarCheck />
             {formattedDate}

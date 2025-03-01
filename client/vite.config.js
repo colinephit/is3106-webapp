@@ -9,4 +9,9 @@ export default defineConfig({
       include: "**/*.jsx",
     }),
   ],
+  server: {
+    proxy: {
+      '/upload': 'http://localhost:4000',
+    },
+  },
 });
