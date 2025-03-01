@@ -11,6 +11,7 @@ const {
     toggleFavoriteRecipe,
     getTopRecipes,
     searchRecipesByIngredients,
+    getOwnRecipes,
 } = require("../controllers/recipeController");
 const { createReport } = require("../controllers/reportController");
 const ROLES_LIST = require("../config/rolesList");
@@ -20,6 +21,13 @@ const verifyRoles = require("../middleware/verifyRoles");
 const router = express.Router();
 
 router.route("/list").post(getAllRecipes);
+
+router
+    .route("/ownList")
+    .get(
+        [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
+        getOwnRecipes
+    );
 
 router.route("/top").get(getTopRecipes);
 

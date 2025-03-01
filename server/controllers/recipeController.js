@@ -5,11 +5,23 @@ const jwt = require("jsonwebtoken");
 
 const getAllRecipes = async (req, res, next) => {
     const filter = {};
-    if (req.body.status !== "ALL") {
+    if (!req.body.status || req.body.status.toUpperCase() !== "ALL") {
         filter.status = req.body.status;
     }
     try {
         const recipes = await Recipe.find(filter)
+            .sort({ createdAt: -1 })
+            .populate("author", "firstName lastName")
+            .populate("ratings", "rating");
+        res.status(200).send(recipes);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getOwnRecipes = async (req, res, next) => {
+    try {
+        const recipes = await Recipe.find({ author: req.user })
             .sort({ createdAt: -1 })
             .populate("author", "firstName lastName")
             .populate("ratings", "rating");
@@ -403,4 +415,5 @@ module.exports = {
     toggleFavoriteRecipe,
     getTopRecipes,
     searchRecipesByIngredients,
+    getOwnRecipes,
 };
