@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { setCredentials, logOut } from "../features/auth/authSlice";
+import { useNavigate } from "react-router-dom";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_SERVER_BASE_URL,
@@ -25,8 +26,12 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 
       result = await baseQuery(args, api, extraOptions);
     } else {
+      const navigate = useNavigate();
       if (refreshResult?.error?.status === 403) {
+        api.dispatch(logOut()); // Dispatch logout if refresh fails
         refreshResult.error.data.message = "Your login has expired.";
+        navigate("/login");
+        return refreshResult;
       }
       return refreshResult;
     }

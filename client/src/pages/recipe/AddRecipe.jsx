@@ -6,28 +6,33 @@ import uploadImage from "../../common/uploadImage";
 import { LinearProgress } from "@mui/material";
 import { toast } from "react-toastify";
 import { useAddRecipeMutation } from "../../features/recipe/recipeApiSlice";
+import { useGetUserQuery } from "../../features/user/userApiSlice";
 import useTitle from "../../hooks/useTitle";
+import useAuth from "../../hooks/useAuth";
 
 const AddRecipe = () => {
   useTitle("Recipen - Add Recipe");
+  const user = useAuth();
+  const { data, ...rest } = useGetUserQuery(user?.userId);
 
   const [formDetails, setFormDetails] = useState({
-    title: "",
+    recipeName: "",
     image: "",
     description: "",
     calories: "",
     cookingTime: "",
     ingredients: [],
     instructions: [],
+    author: userId,
   });
   const [progress, setProgress] = useState(0);
   const [ingredient, setIngredient] = useState("");
   const [instruction, setInstruction] = useState("");
   const [focused, setFocused] = useState({
-    title: "",
+    recipeName: "",
     calories: "",
     cookingTime: "",
-    ingredient: "",
+    ingredients: "",
   });
   const [addRecipe, { isLoading }] = useAddRecipeMutation();
 
@@ -66,6 +71,8 @@ const AddRecipe = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    console.log(formDetails);
+
     //if (!formDetails.image) return toast.error("Upload recipe image");
     if (!formDetails.ingredients.length)
       return toast.error("Ingredients cannot be empty");
@@ -82,7 +89,7 @@ const AddRecipe = () => {
         }
       );
       setFormDetails({
-        title: "",
+        recipeName: "",
         image: "",
         description: "",
         calories: "",
@@ -91,7 +98,7 @@ const AddRecipe = () => {
         instructions: [],
       });
       setFocused({
-        title: "",
+        recipeName: "",
         calories: "",
         cookingTime: "",
         ingredient: "",
@@ -113,7 +120,7 @@ const AddRecipe = () => {
         <div className="basis-1/2 flex flex-col gap-5">
           <div className="flex flex-col sm:flex-row justify-between">
             <label
-              htmlFor="title"
+              htmlFor="recipeName"
               className="text-sm font-semibold mb-3 basis-1/2"
             >
               Recipe name
@@ -122,20 +129,20 @@ const AddRecipe = () => {
               <input
                 type="text"
                 onChange={handleChange}
-                value={formDetails.title}
-                id="title"
-                name="title"
+                value={formDetails.recipeName}
+                id="recipeName"
+                name="recipeName"
                 onBlur={handleFocus}
-                focused={focused.title.toString()}
+                focused={focused.recipeName.toString()}
                 pattern={"^.{3,}$"}
                 required
                 aria-required="true"
-                aria-describedby="title-error"
+                aria-describedby="recipeName-error"
                 placeholder="Enter recipe name"
                 className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary"
               />
               <span
-                id="title-error"
+                id="recipeName-error"
                 className="hidden text-red-500 pl-2 text-sm mt-1"
               >
                 Name should at least 3 characters long
@@ -245,7 +252,7 @@ const AddRecipe = () => {
                     id="ingredient"
                     name="ingredient"
                     onBlur={handleFocus}
-                    focused={focused.ingredient.toString()}
+                    focused={focused.ingredients.toString()}
                     pattern={"^.{3,}$"}
                     aria-required="true"
                     aria-describedby="ingredient-error"
@@ -311,10 +318,7 @@ const AddRecipe = () => {
                       <p className="text-sm text-gray-700">{ele}</p>
                     </div>
                     <div>
-                      <RxCross2
-                        className="cursor-pointer"
-                        size={20}
-                      />
+                      <RxCross2 className="cursor-pointer" size={20} />
                     </div>
                   </li>
                 ))}

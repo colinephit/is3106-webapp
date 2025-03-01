@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Input } from "../../components";
 import { BiLockAlt } from "react-icons/bi";
+import { BiPhone } from "react-icons/bi";
 import { IoMailOutline } from "react-icons/io5";
 import { AiOutlineUser } from "react-icons/ai";
 import { profileBg } from "../../assets";
@@ -9,20 +10,40 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "../../features/auth/authSlice";
 import uploadImage from "../../common/uploadImage";
 import { toast } from "react-toastify";
-import { useUpdateUserMutation } from "../../features/user/userApiSlice";
+import {
+  useUpdateUserMutation,
+  useGetUserQuery,
+} from "../../features/user/userApiSlice";
 import useAuth from "../../hooks/useAuth";
 import useTitle from "../../hooks/useTitle";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
   const user = useAuth();
+  const { data, isSuccess } = useGetUserQuery(user?.userId);
   useTitle("Recipen - Profile");
+  const navigate = useNavigate();
 
   const [formDetails, setFormDetails] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
+    firstName: data?.firstName || "",
+    email: data?.email || "",
     image: "",
     password: "",
+    contactNumber: "",
   });
+
+  useEffect(() => {
+    if (isSuccess && data) {
+      setFormDetails({
+        firstName: data.firstName || "",
+        lastName: data.lastName || "",
+        email: data.email || "",
+        contactNumber: data.contactNumber || "",
+        image: data.profilePicture || "",
+        password: "",
+      });
+    }
+  }, [isSuccess, data]);
 
   const [progress, setProgress] = useState(0);
   const [updateUser, { isLoading }] = useUpdateUserMutation();
@@ -38,6 +59,7 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting form with:", formDetails);
 
     try {
       const updatedUser = await toast.promise(
@@ -48,16 +70,32 @@ const Profile = () => {
           error: "Unable to update user",
         }
       );
+
+      console.log("Updated user data:", updatedUser);
+
       setFormDetails({
-        name: formDetails?.name,
+        firstName: formDetails?.firstName,
         email: formDetails?.email,
         image: formDetails?.image,
+        contactNumber: formDetails?.contactNumber,
         password: "",
       });
-      dispatch(setCredentials({ ...updatedUser }));
+
+      // Dispatch both user data and token
+      dispatch(
+        setCredentials({
+          accessToken: updatedUser.accessToken, // Pass the access token
+          user: updatedUser.user, // Pass the updated user details
+        })
+      );
+
+      console.log("Dispatched new credentials");
+
+      navigate("/profile"); // Redirect after successful update
     } catch (error) {
+      console.error("Update failed:", error);
       toast.error(error.data);
-      console.error(error);
+      navigate("/profile"); // Redirect after failure (or handle accordingly)
     }
   };
 
@@ -79,14 +117,11 @@ const Profile = () => {
           {/* Upload image */}
           <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center md:mb-4">
             {progress > 0 && progress < 100 ? (
-              <CircularProgress
-                color="warning"
-                size={30}
-              />
+              <CircularProgress color="warning" size={30} />
             ) : (
               <MuiAvatar
-                alt={user?.name}
-                src={formDetails.image || user?.profilePicture}
+                alt={data?.firstName}
+                src={formDetails.image || data?.profilePicture}
                 sx={{ width: 80, height: 80 }}
                 className="border-2 border-primary"
               />
@@ -109,12 +144,21 @@ const Profile = () => {
           </div>
           <Input
             type={"text"}
-            id={"name"}
+            id={"firstName"}
             icon={<AiOutlineUser />}
             handleChange={handleChange}
-            value={formDetails.name}
-            label={"Full Name"}
-            placeholder={"John Doe"}
+            value={formDetails.firstName}
+            label={"First Name"}
+            placeholder={data?.firstName}
+          />
+          <Input
+            type={"text"}
+            id={"lastName"}
+            icon={<AiOutlineUser />}
+            handleChange={handleChange}
+            value={formDetails.lastName}
+            label={"Last Name"}
+            placeholder={data?.lastName}
           />
           <Input
             type={"email"}
@@ -123,7 +167,16 @@ const Profile = () => {
             handleChange={handleChange}
             value={formDetails.email}
             label={"Email"}
-            placeholder={"example@abc.com"}
+            placeholder={data?.email}
+          />
+          <Input
+            type={"text"}
+            id={"contactNumber"}
+            icon={<BiPhone />}
+            handleChange={handleChange}
+            value={formDetails.contactNumber}
+            label={"Contact Number"}
+            placeholder={data?.contactNumber}
           />
           <Input
             type={"password"}
@@ -143,10 +196,7 @@ const Profile = () => {
         </form>
         {/* Profile banner */}
         <div className="hidden md:block md:basis-1/3">
-          <img
-            src={profileBg}
-            alt="profile page banner"
-          />
+          <img src={profileBg} alt="profile page banner" />
         </div>
       </div>
     </section>
