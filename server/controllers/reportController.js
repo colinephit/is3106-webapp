@@ -1,5 +1,5 @@
-const Report = require('../models/reportModel');
-const Recipe = require('../models/recipeModel');
+const Report = require("../models/reportModel");
+const Recipe = require("../models/recipeModel");
 
 // to create a new report for a specific recipe
 const createReport = async (req, res) => {
@@ -10,7 +10,7 @@ const createReport = async (req, res) => {
 
         const recipe = await Recipe.findById(recipeId);
         if (!recipe) {
-            return res.status(404).json({ message: 'Recipe not found' });
+            return res.status(404).json({ message: "Recipe not found" });
         }
 
         const newReport = new Report({
@@ -20,11 +20,22 @@ const createReport = async (req, res) => {
             recipe: recipeId,
         });
 
+        // if the recipe is being reported for multiple times,
+        // we will make it to pending for admin action
+        const reports = await Report.find({ recipe: recipeId });
+        if (reports.length + 1 >= 5) {
+            recipe.status = "Pending";
+            await recipe.save();
+        }
+
         await newReport.save();
 
-        res.status(201).json({ message: 'Report submitted successfully', report: newReport });
+        res.status(201).json({
+            message: "Report submitted successfully",
+            report: newReport,
+        });
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error: error.message });
+        res.status(500).json({ message: "Server error", error: error.message });
     }
 };
 

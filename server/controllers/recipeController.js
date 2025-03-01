@@ -4,8 +4,12 @@ const User = require("../models/userModel");
 const jwt = require("jsonwebtoken");
 
 const getAllRecipes = async (req, res, next) => {
+    const filter = {};
+    if (req.body.status !== "ALL") {
+        filter.status = req.body.status;
+    }
     try {
-        const recipes = await Recipe.find()
+        const recipes = await Recipe.find(filter)
             .sort({ createdAt: -1 })
             .populate("author", "firstName lastName")
             .populate("ratings", "rating");
@@ -75,7 +79,8 @@ const getRecipe = async (req, res, next) => {
             .populate("categories")
             .populate("ratings", "rating");
 
-        if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+        if (!recipe)
+            return res.status(404).json({ message: "Recipe not found" });
 
         res.status(200).send(recipe);
     } catch (error) {
@@ -95,6 +100,7 @@ const addRecipe = async (req, res, next) => {
             ingredients,
             categories,
             instructions,
+            status,
             // additionalInformation,
         } = req.body;
         if (
@@ -105,7 +111,8 @@ const addRecipe = async (req, res, next) => {
             !cookingTime ||
             !ingredients.length ||
             !categories.length ||
-            !instructions.length
+            !instructions.length ||
+            !status
             // !additionalInformation
         ) {
             return res.status(422).json({ message: "Insufficient data" });
@@ -116,7 +123,9 @@ const addRecipe = async (req, res, next) => {
         });
 
         if (validIngredients.length !== ingredients.length) {
-            return res.status(400).json({ message: "One or more ingredients are invalid" });
+            return res
+                .status(400)
+                .json({ message: "One or more ingredients are invalid" });
         }
 
         // to validate category ID
@@ -151,6 +160,7 @@ const updateRecipe = async (req, res, next) => {
             categories,
             instructions,
             additionalInformation,
+            status,
         } = req.body;
         if (
             !recipeName ||
@@ -160,7 +170,8 @@ const updateRecipe = async (req, res, next) => {
             !cookingTime ||
             !ingredients.length ||
             !categories.length ||
-            !instructions.length
+            !instructions.length ||
+            !status
         ) {
             return res.status(422).json({ message: "Insufficient data" });
         }
@@ -181,6 +192,7 @@ const updateRecipe = async (req, res, next) => {
         foundRecipe.instructions = instructions;
         foundRecipe.categories = categories;
         foundRecipe.additionalInformation = additionalInformation;
+        foundRecipe.status = status;
 
         const updatedRecipe = await foundRecipe.save();
         res.status(201).json(updatedRecipe);
@@ -285,7 +297,10 @@ const deleteComment = async (req, res, next) => {
 
 const toggleFavoriteRecipe = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user).populate("roleId", "roleName");
+        const user = await User.findById(req.user).populate(
+            "roleId",
+            "roleName"
+        );
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -332,8 +347,14 @@ const searchRecipesByIngredients = async (req, res) => {
     try {
         let { ingredients } = req.body; // expects an array of ingredient IDs that user selected
 
-        if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
-            return res.status(400).json({ message: "Please select at least one ingredient" });
+        if (
+            !ingredients ||
+            !Array.isArray(ingredients) ||
+            ingredients.length === 0
+        ) {
+            return res
+                .status(400)
+                .json({ message: "Please select at least one ingredient" });
         }
 
         // find all recipes that contain at least some of the selected ingredients
@@ -345,21 +366,30 @@ const searchRecipesByIngredients = async (req, res) => {
 
         // filter recipes based on missing ingredient count
         const filteredRecipes = recipes.filter((recipe) => {
-            const recipeIngredientIds = recipe.ingredients.map(thing => thing._id.toString());
-            const missingCount = ingredients.filter(thingId => !recipeIngredientIds.includes(thingId)).length;
+            const recipeIngredientIds = recipe.ingredients.map((thing) =>
+                thing._id.toString()
+            );
+            const missingCount = ingredients.filter(
+                (thingId) => !recipeIngredientIds.includes(thingId)
+            ).length;
             return missingCount <= 5; // we should allow up to 5 missing ingredients, else cant be made?
         });
 
         if (filteredRecipes.length === 0) {
-            return res.status(400).json({ message: "Too many missing ingredients. Try removing some ingredients from your search." });
+            return res.status(400).json({
+                message:
+                    "Too many missing ingredients. Try removing some ingredients from your search.",
+            });
         }
 
         res.status(200).json(filteredRecipes);
     } catch (error) {
-        res.status(500).json({ message: "Error searching recipes", error: error.message });
+        res.status(500).json({
+            message: "Error searching recipes",
+            error: error.message,
+        });
     }
 };
-
 
 module.exports = {
     getAllRecipes,
@@ -372,5 +402,5 @@ module.exports = {
     deleteComment,
     toggleFavoriteRecipe,
     getTopRecipes,
-    searchRecipesByIngredients
+    searchRecipesByIngredients,
 };
