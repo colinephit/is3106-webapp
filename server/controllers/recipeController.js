@@ -86,13 +86,16 @@ const getRecipe = async (req, res, next) => {
     try {
         const recipe = await Recipe.findOne({ _id: req.params.id })
             .populate("author", "firstName lastName")
-            .populate("comments.user", ["name", "profileImage"])
+            .populate("comments.user", "firstName lastName profileImage")
             .populate("ingredients")
             .populate("categories")
-            .populate("ratings", "rating");
+            .populate("ratings", "rating")
+            .lean();
 
         if (!recipe)
             return res.status(404).json({ message: "Recipe not found" });
+
+        console.log("Recipe Data:", JSON.stringify(recipe, null, 2));
 
         res.status(200).send(recipe);
     } catch (error) {
@@ -223,16 +226,20 @@ const rateRecipe = async (req, res, next) => {
         }
 
         // Check if the user has already rated this recipe
-        const existingRating = recipe.ratings.find((rate) =>
-            rate.user.equals(req.user)
+        const existingRating = recipe.ratings.find(
+            (rate) => rate.user.equals(req.user) // Check if the user has rated this recipe
         );
+
+        // If the user has already rated, update the rating
         if (existingRating) {
+            existingRating.rating = rating;
+            await recipe.save();
             return res
-                .status(400)
-                .json({ message: "User has already rated this recipe" });
+                .status(200)
+                .json({ message: "Rating updated successfully." });
         }
 
-        // Add the new rating
+        // If user had not previously rated, add the new rating
         recipe.ratings.push({ user: req.user, rating: rating });
         await recipe.save();
 
@@ -285,6 +292,8 @@ const addComment = async (req, res, next) => {
 const deleteComment = async (req, res, next) => {
     try {
         const { recipeId, commentId } = req.params;
+
+        console.log("inside controller the recipe id is: " + recipeId);
 
         const recipe = await Recipe.findById(recipeId);
         if (!recipe) {

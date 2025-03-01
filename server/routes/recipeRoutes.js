@@ -20,6 +20,8 @@ const verifyRoles = require("../middleware/verifyRoles");
 
 const router = express.Router();
 
+// router.route("/list").get(getAllRecipes);
+
 router.route("/list").post(getAllRecipes);
 
 router
@@ -68,6 +70,8 @@ router
         [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
         deleteComment
     );
+
+// router.route("/comment/:recipeId/:commentId").delete(deleteComment);
 
 router
     .route("/favorite/:id")
