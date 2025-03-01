@@ -48,6 +48,7 @@ const schema = mongoose.Schema(
                 },
             },
         ],
+        status: { type: String },
     },
     {
         timestamps: true,

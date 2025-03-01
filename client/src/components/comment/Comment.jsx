@@ -11,6 +11,7 @@ const Comment = ({ comment, userId, handleDeleteComment }) => {
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
+    console.log(comment);
   };
 
   const handleClose = () => {
@@ -33,8 +34,9 @@ const Comment = ({ comment, userId, handleDeleteComment }) => {
       />
       <div className="flex flex-col gap-1 w-full">
         <div className="flex justify-between flex-col sm:flex-row items-center">
-          {console.log(comment?.user?.firstName)}
-          <h4 className="font-bold text-lg">{comment?.user?.firstName}</h4>
+          <h4 className="font-bold text-lg">
+            {comment?.user?.firstName + " " + comment?.user?.lastName}
+          </h4>
           <span className="flex gap-2 items-center text-sm">
             <BsCalendarCheck />
             {formattedDate}

@@ -25,5 +25,5 @@ router.get("/search", [verifyJwt], searchIngredients);
 module.exports = router;
 
 
-module.exports = router;
+
 
