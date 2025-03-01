@@ -12,6 +12,7 @@ const {
   getTopRecipes,
   searchRecipesByIngredients,
 } = require("../controllers/recipeController");
+const { createReport } = require('../controllers/reportController');
 const ROLES_LIST = require("../config/rolesList");
 const verifyJwt = require("../middleware/verifyJwt");
 const verifyRoles = require("../middleware/verifyRoles");
@@ -69,6 +70,14 @@ router
 
 // to search for recipes using selected ingredients
 router.post("/search", [verifyJwt], searchRecipesByIngredients);
+
+// route to create a new report for a specific recipe
+router.post(
+  '/:recipeId/report',
+  verifyJwt,
+  verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin),
+  createReport
+);
 
 
 module.exports = router;

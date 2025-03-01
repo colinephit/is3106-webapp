@@ -17,7 +17,7 @@ const ingredientSchema = new mongoose.Schema(
             },
         },
     },
-    { timestamps: true } // this uto-generates dateCreatedAt & dateUpdatedAt fields
+    { timestamps: true } // this auto-generates dateCreatedAt & dateUpdatedAt fields
 );
 
 const Ingredient = mongoose.model("Ingredient", ingredientSchema);
