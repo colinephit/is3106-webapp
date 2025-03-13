@@ -34,7 +34,6 @@ const SingleRecipe = () => {
   useTitle("Recipen - Recipe");
 
   const user = useAuth();
-  const [rating, setRating] = useState(0);
   const { id } = useParams();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -53,6 +52,10 @@ const SingleRecipe = () => {
     email: user?.email || "",
     message: "",
   });
+
+  const [rating, setRating] = useState(
+    data?.ratings.find((d) => d.user == user.userId).rating
+  );
 
   const sumOfRatings = data?.ratings.reduce(
     (sum, item) => sum + item.rating,
@@ -214,8 +217,8 @@ const SingleRecipe = () => {
               <div className="flex justify-between items-center">
                 <p className="flex gap-2 items-center font-semibold">
                   <LuChefHat className="text-primary" />
-                  {data?.author?.firstName && data?.author?.lastName 
-                    ? `${data.author.firstName}, ${data.author.lastName}` 
+                  {data?.author?.firstName && data?.author?.lastName
+                    ? `${data.author.firstName}, ${data.author.lastName}`
                     : "Author name not available"}
                 </p>
                 <div className="flex gap-2 p-2 bg-light rounded-l-lg">
@@ -266,7 +269,7 @@ const SingleRecipe = () => {
               {console.log('Ingredients Data:', data?.ingredients)} {/* Log ingredients */}
               <ol className="flex flex-col gap-2 list-decimal ml-5">
                 {data?.ingredients?.map((ingredient, i) => (
-                  <li key={`ingredient-${i + 1}`}>{ingredient.name}</li>
+                  <li key={`ingredient-${i + 1}`}>{ingredient.ingredientName}</li>
                 ))}
               </ol>
             </div>
