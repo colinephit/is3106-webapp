@@ -26,6 +26,7 @@ const Profile = () => {
 
   const [formDetails, setFormDetails] = useState({
     firstName: data?.firstName || "",
+    lastName: data?.lastName || "",
     email: data?.email || "",
     image: "",
     password: "",
@@ -186,6 +187,11 @@ const Profile = () => {
             value={formDetails.password}
             label={"Password"}
             placeholder={"At least 6 characters long"}
+            required={false}
+            errorMessage={
+              "Password should be 6-15 characters long and must include at least 1 letter, 1 number and 1 special character!"
+            }
+            pattern={`^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,20}$`}
           />
           <Button
             type="submit"

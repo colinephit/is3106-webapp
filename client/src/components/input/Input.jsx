@@ -11,6 +11,7 @@ const Input = ({
   placeholder,
   pattern,
   errorMessage,
+  required = true
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [focused, setFocused] = useState(false);
@@ -38,7 +39,7 @@ const Input = ({
         name={id}
         onBlur={handleFocus}
         focused={focused.toString()}
-        required
+        required={required}
         aria-required="true"
         aria-describedby={`${id}-error`}
         placeholder={placeholder}
