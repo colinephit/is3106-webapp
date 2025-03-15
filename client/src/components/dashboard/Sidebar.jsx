@@ -3,9 +3,9 @@ import { FiMenu } from "react-icons/fi";
 import { NavLink, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { BiHomeAlt2 } from "react-icons/bi";
-import { BsFileEarmarkText } from "react-icons/bs";
+import { BsFileEarmarkText, BsCart4 } from "react-icons/bs";
 import { HiOutlineUsers, HiOutlineLogout } from "react-icons/hi";
-import { IoRestaurantOutline } from "react-icons/io5";
+import { IoRestaurantOutline, IoFolderOutline } from "react-icons/io5";
 import { Logo } from "..";
 import { Avatar as MuiAvatar } from "@mui/material";
 import useAuth from "../../hooks/useAuth";
@@ -95,6 +95,24 @@ const index = ({ isCollapsed, setIsCollapsed }) => {
           >
             <BsFileEarmarkText />
             {!isCollapsed && "Blogs"}
+          </NavLink>
+          <NavLink
+            to={"/dashboard/ingredients"}
+            className={`rounded-lg hover:bg-gradient-to-r hover:from-primary hover:to-primaryLight p-2 flex gap-2 items-center text-gray-600 hover:text-light ${
+              isCollapsed && "justify-center"
+            }`}
+          >
+            <BsCart4 />
+            {!isCollapsed && "Ingredients"}
+          </NavLink>
+          <NavLink
+            to={"/dashboard/categories"}
+            className={`rounded-lg hover:bg-gradient-to-r hover:from-primary hover:to-primaryLight p-2 flex gap-2 items-center text-gray-600 hover:text-light ${
+              isCollapsed && "justify-center"
+            }`}
+          >
+            <IoFolderOutline />
+            {!isCollapsed && "Categories"}
           </NavLink>
         </div>
       </div>
