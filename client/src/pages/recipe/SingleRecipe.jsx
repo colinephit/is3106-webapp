@@ -9,7 +9,7 @@ import {
 } from "../../components";
 import { IoMailOutline } from "react-icons/io5";
 import { FaRegPaperPlane } from "react-icons/fa";
-import { LuChefHat } from "react-icons/lu";
+import { LuChefHat, LuBook } from "react-icons/lu";
 import { BsStopwatch } from "react-icons/bs";
 import { LiaWeightSolid } from "react-icons/lia";
 import { AiOutlineHeart, AiFillHeart, AiOutlineUser } from "react-icons/ai";
@@ -34,6 +34,7 @@ const SingleRecipe = () => {
   useTitle("Recipen - Recipe");
 
   const user = useAuth();
+  const [rating, setRating] = useState(0);
   const { id } = useParams();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -52,10 +53,6 @@ const SingleRecipe = () => {
     email: user?.email || "",
     message: "",
   });
-
-  const [rating, setRating] = useState(
-    data?.ratings.find((d) => d.user == user.userId).rating
-  );
 
   const sumOfRatings = data?.ratings.reduce(
     (sum, item) => sum + item.rating,
@@ -183,7 +180,9 @@ const SingleRecipe = () => {
             {/* Recipe details */}
             <div className="basis-2/3 flex flex-col gap-2">
               <div className="flex justify-between">
-                <h2 className="font-bold text-xl md:text-3xl">{data?.recipeName}</h2>
+                <h2 className="font-bold text-xl md:text-3xl">
+                  {data?.recipeName}
+                </h2>
                 {data?.author?._id === user?.userId && (
                   <>
                     <IconButton
@@ -238,13 +237,21 @@ const SingleRecipe = () => {
                   />
                 </div>
               </div>
+              <p className="flex gap-2 items-center font-semibold">
+                <LuBook className="text-primary" />
+                {data?.categories?.map((cat, i) => (
+                  <span
+                    key={i}
+                    className="ml-2 px-3 py-1 text-sm font-medium text-gray-700 bg-gray-200 rounded-full"
+                  >
+                    {cat.categoryName}
+                  </span>
+                ))}
+              </p>
               {/* Recipe rating */}
-              <Rating
-                value={averageRating}
-                size={"medium"}
-                readOnly
-              />
+              <Rating value={averageRating} size={"medium"} readOnly />
               <p className="my-4">{data?.description}</p>
+
               {/* Recipe time & cals */}
               <div className="flex flex-col sm:flex-row gap-4 justify-between w-2/3 mx-auto">
                 <div className="flex flex-col gap-1 items-center">
@@ -256,7 +263,9 @@ const SingleRecipe = () => {
                 </div>
                 <div className="flex flex-col gap-1 items-center text-gray-800">
                   <LiaWeightSolid className="text-5xl" />
-                  <h3 className="font-bold text-xl text-primary">Difficulty Level</h3>
+                  <h3 className="font-bold text-xl text-primary">
+                    Difficulty Level
+                  </h3>
                   <p>{data?.difficultyLevel} / 5</p>
                 </div>
               </div>
@@ -266,10 +275,13 @@ const SingleRecipe = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="basis-1/3 flex flex-col gap-4 border-b-2 md:border-b-0 pb-4 md:pb-0 md:border-r-2 border-gray-200 items-center">
               <h3 className="font-bold text-2xl">Ingredients</h3>
-              {console.log('Ingredients Data:', data?.ingredients)} {/* Log ingredients */}
+              {console.log("Ingredients Data:", data?.ingredients)}{" "}
+              {/* Log ingredients */}
               <ol className="flex flex-col gap-2 list-decimal ml-5">
                 {data?.ingredients?.map((ingredient, i) => (
-                  <li key={`ingredient-${i + 1}`}>{ingredient.ingredientName}</li>
+                  <li key={`ingredient-${i + 1}`}>
+                    {ingredient.ingredientName}
+                  </li>
                 ))}
               </ol>
             </div>
@@ -301,10 +313,7 @@ const SingleRecipe = () => {
           {/* Recipe comment form */}
           <div className="my-10 w-full sm:w-2/3 md:w-1/2 mx-auto flex flex-col gap-6">
             <h3 className="font-bold text-2xl">Leave a Reply</h3>
-            <form
-              className="flex flex-col gap-4"
-              onSubmit={handleSubmit}
-            >
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <Input
                 type={"text"}
                 id={"name"}
@@ -324,10 +333,7 @@ const SingleRecipe = () => {
                 placeholder={"example@abc.com"}
               />
               <div className="flex flex-col relative ">
-                <label
-                  htmlFor="message"
-                  className="text-sm font-semibold mb-3"
-                >
+                <label htmlFor="message" className="text-sm font-semibold mb-3">
                   Comment
                 </label>
                 <textarea
