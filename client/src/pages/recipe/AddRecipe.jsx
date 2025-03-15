@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../components";
 import { photo } from "../../assets";
 import { RxCross2 } from "react-icons/rx";
@@ -7,6 +7,11 @@ import { LinearProgress } from "@mui/material";
 import { toast } from "react-toastify";
 import { useAddRecipeMutation } from "../../features/recipe/recipeApiSlice";
 import { useGetUserQuery } from "../../features/user/userApiSlice";
+import {
+  useAddIngredientMutation,
+  useGetIngredientsQuery,
+} from "../../features/ingredient/ingredientApiSlice";
+import { useGetCategoriesQuery } from "../../features/category/categoryApiSlice";
 import useTitle from "../../hooks/useTitle";
 import useAuth from "../../hooks/useAuth";
 
@@ -19,22 +24,66 @@ const AddRecipe = () => {
     recipeName: "",
     image: "",
     description: "",
-    calories: "",
+    difficultyLevel: "",
     cookingTime: "",
     ingredients: [],
     instructions: [],
-    author: userId,
+    categories: [],
+    author: user?.userId,
+    status: "Published",
   });
   const [progress, setProgress] = useState(0);
+  const [category, setCategory] = useState("");
   const [ingredient, setIngredient] = useState("");
   const [instruction, setInstruction] = useState("");
   const [focused, setFocused] = useState({
     recipeName: "",
-    calories: "",
+    difficultyLevel: "",
     cookingTime: "",
     ingredients: "",
+    categories: "",
   });
   const [addRecipe, { isLoading }] = useAddRecipeMutation();
+  const [ingredientQuery, setIngredientQuery] = useState("");
+  const [ingredientSuggestions, setIngredientSuggestions] = useState([]);
+  const [addIngredientToDB] = useAddIngredientMutation();
+
+  const { data: ingredients, isLoading: isLoadingIngredients } =
+    useGetIngredientsQuery(ingredientQuery, {
+      skip: ingredientQuery.length < 2, // Don't fetch if the query length is less than 2
+    });
+
+  useEffect(() => {
+    console.log("Ingredients fetched:", ingredients);
+    if (ingredientQuery.length < 2) {
+      setIngredientSuggestions([]);
+      return;
+    }
+
+    if (ingredients) {
+      setIngredientSuggestions(ingredients);
+    }
+  }, [ingredients, ingredientQuery]);
+
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [categorySuggestions, setCategorySuggestions] = useState([]);
+
+  const { data: categories, isLoading: isLoadingCategories } =
+    useGetCategoriesQuery(categoryQuery, {
+      skip: categoryQuery.length < 2, // Don't fetch if the query length is less than 2
+    });
+
+  useEffect(() => {
+    console.log("Categories fetched:", categories);
+    if (categoryQuery.length < 2) {
+      setCategorySuggestions([]);
+      return;
+    }
+
+    if (categories) {
+      setCategorySuggestions(categories);
+    }
+  }, [categories, categoryQuery]);
 
   const handleFocus = (e) => {
     setFocused({ ...focused, [e.target.id]: true });
@@ -43,19 +92,50 @@ const AddRecipe = () => {
   const handleChange = (e) => {
     if (e.target.id === "image") {
       uploadImage(e, setProgress, setFormDetails, formDetails);
+    } else if (e.target.id === "difficultyLevel") {
+      let intValue = parseInt(e.target.value, 10); // Convert to integer
+      if (isNaN(intValue) || intValue < 1) intValue = 1;
+      if (intValue > 5) intValue = 5;
+
+      setFormDetails({ ...formDetails, [e.target.id]: intValue });
     } else {
       setFormDetails({ ...formDetails, [e.target.id]: e.target.value });
     }
   };
 
-  const addIngredient = () => {
-    if (!ingredient) {
-      return toast.error("Ingredient cannot be empty");
+  const handleAddIngredient = async () => {
+    if (!ingredientQuery) return toast.error("Ingredient cannot be empty");
+
+    // Check if the ingredient exists in suggestions
+    const existingIngredient = ingredientSuggestions.find(
+      (ing) => ing.ingredientName === ingredientQuery
+    );
+
+    if (existingIngredient) {
+      // If exists, add only the ID
+      setFormDetails((prev) => ({
+        ...prev,
+        ingredients: [...prev.ingredients, existingIngredient._id], // Store ID only
+      }));
+    } else {
+      // If doesn't exist, add to DB first
+      try {
+        const newIngredient = await addIngredientToDB({
+          ingredientName: ingredientQuery,
+        }).unwrap();
+
+        setFormDetails((prev) => ({
+          ...prev,
+          ingredients: [...prev.ingredients, newIngredient.ingredient._id], // Store new ID
+        }));
+
+        toast.success("Ingredient added successfully");
+      } catch (error) {
+        toast.error("Failed to add ingredient");
+      }
     }
-    const updatedFormDetails = { ...formDetails };
-    updatedFormDetails.ingredients.push(ingredient);
-    setFormDetails(updatedFormDetails);
-    setIngredient("");
+
+    setIngredientQuery(""); // Reset input field
   };
 
   const addInstruction = () => {
@@ -68,7 +148,28 @@ const AddRecipe = () => {
     setInstruction("");
   };
 
+  const removeIngredient = (index) => {
+    setFormDetails((prev) => {
+      const updatedIngredients = [...prev.ingredients];
+      updatedIngredients.splice(index, 1);
+      return { ...prev, ingredients: updatedIngredients };
+    });
+  };
+
+  const removeCategory = (index) => {
+    const updatedCategories = [...formDetails.categories];
+    updatedCategories.splice(index, 1);
+    setFormDetails({ ...formDetails, categories: updatedCategories });
+  };
+
+  const removeInstruction = (index) => {
+    const updatedInstructions = [...formDetails.instructions];
+    updatedInstructions.splice(index, 1);
+    setFormDetails({ ...formDetails, instructions: updatedInstructions });
+  };
+
   const handleSubmit = async (e) => {
+    console.log("submit button clicked");
     e.preventDefault();
 
     console.log(formDetails);
@@ -78,6 +179,15 @@ const AddRecipe = () => {
       return toast.error("Ingredients cannot be empty");
     if (!formDetails.instructions.length)
       return toast.error("Instructions cannot be empty");
+    if (
+      !formDetails.difficultyLevel ||
+      formDetails.difficultyLevel < 1 ||
+      formDetails.difficultyLevel > 5
+    ) {
+      return toast.error("Difficulty level must be between 1 and 5");
+    }
+
+    console.log("Submitting data:", formDetails); // Debugging
 
     try {
       const recipe = await toast.promise(
@@ -92,16 +202,18 @@ const AddRecipe = () => {
         recipeName: "",
         image: "",
         description: "",
-        calories: "",
+        difficultyLevel: "",
         cookingTime: "",
         ingredients: [],
         instructions: [],
+        categories: [],
       });
       setFocused({
         recipeName: "",
-        calories: "",
+        difficultyLevel: "",
         cookingTime: "",
         ingredient: "",
+        category: "",
       });
     } catch (error) {
       toast.error(error.data);
@@ -152,6 +264,63 @@ const AddRecipe = () => {
           <hr />
           <div className="flex flex-col sm:flex-row justify-between">
             <label
+              htmlFor="categories"
+              className="text-sm font-semibold mb-3 basis-1/2"
+            >
+              Add category
+            </label>
+            <div className="flex flex-col basis-1/2">
+              <div className="relative flex flex-col gap-2">
+                <div className="relative flex gap-1 justify-between">
+                  <input
+                    type="text"
+                    onChange={(e) => setCategoryQuery(e.target.value)}
+                    value={categoryQuery}
+                    placeholder="Search or add a category"
+                    className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
+                  />
+
+                  {categorySuggestions.length > 0 && (
+                    <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
+                      {categorySuggestions.map((cat) => (
+                        <li
+                          key={cat._id}
+                          onClick={() => {
+                            setFormDetails((prev) => ({
+                              ...prev,
+                              categories: [...prev.categories, cat._id],
+                            }));
+                            setCategoryQuery(""); // Clear input after selection
+                          }}
+                          className="p-2 cursor-pointer hover:bg-gray-200"
+                        >
+                          {cat.categoryName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                <ul className="flex flex-col gap-2">
+                  {formDetails.categories.map((ele, index) => (
+                    <li
+                      className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
+                      key={ele}
+                    >
+                      {ele}
+                      <RxCross2
+                        className="cursor-pointer"
+                        onClick={() => removeCategory(index)}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+          <hr />
+          <div className="flex flex-col sm:flex-row justify-between">
+            <label
               htmlFor="description"
               className="text-sm font-semibold mb-3 basis-1/2"
             >
@@ -175,28 +344,29 @@ const AddRecipe = () => {
           <hr />
           <div className="flex flex-col sm:flex-row justify-between">
             <label
-              htmlFor="calories"
+              htmlFor="difficultyLevel"
               className="text-sm font-semibold mb-3 basis-1/2"
             >
-              Total calories
+              Difficulty Level
             </label>
             <div className="flex flex-col basis-1/2">
               <input
                 type="number"
                 onChange={handleChange}
-                value={formDetails.calories}
-                id="calories"
+                value={formDetails.difficultyLevel}
+                id="difficultyLevel"
                 required
-                name="calories"
+                name="difficultyLevel"
+                min="1"
+                max="5"
                 onBlur={handleFocus}
-                focused={focused.calories.toString()}
                 aria-required="true"
-                aria-describedby="calories-error"
-                placeholder="Enter total calories"
+                aria-describedby="difficultyLevel-error"
+                placeholder="Enter difficulty level (1-5)"
                 className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary"
               />
               <span
-                id="calories-error"
+                id="difficultyLevel-error"
                 className="hidden text-red-500 pl-2 text-sm mt-1"
               >
                 Should not include letters or special characters
@@ -243,40 +413,58 @@ const AddRecipe = () => {
               Add ingredients
             </label>
             <div className="flex flex-col basis-1/2">
-              <div className="flex flex-col gap-2">
-                <div className="flex gap-1 justify-between">
+              <div className="relative flex items-center gap-2">
+                <div className="relative flex gap-1 justify-between">
                   <input
                     type="text"
-                    onChange={(e) => setIngredient(e.target.value)}
-                    value={ingredient}
-                    id="ingredient"
-                    name="ingredient"
-                    onBlur={handleFocus}
-                    focused={focused.ingredients.toString()}
-                    pattern={"^.{3,}$"}
-                    aria-required="true"
-                    aria-describedby="ingredient-error"
-                    placeholder="2 medium onion"
+                    onChange={(e) => setIngredientQuery(e.target.value)}
+                    value={ingredientQuery}
+                    placeholder="Search or add an ingredient"
                     className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
                   />
-                  <Button
-                    content={"Add"}
-                    customCss={"rounded text-sm px-4 py-1"}
-                    handleClick={addIngredient}
-                  />
+
+                  {ingredientSuggestions.length > 0 && (
+                    <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
+                      {ingredientSuggestions.map((ing) => (
+                        <li
+                          key={ing._id}
+                          onClick={() => {
+                            setFormDetails((prev) => ({
+                              ...prev,
+                              ingredients: [...prev.ingredients, ing._id],
+                            }));
+                            setIngredientQuery(""); // Clear input after selection
+                          }}
+                          className="p-2 cursor-pointer hover:bg-gray-200"
+                        >
+                          {ing.ingredientName}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
-                <ul className="flex flex-col gap-2">
-                  {formDetails.ingredients.map((ele) => (
-                    <li
-                      className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                      key={ele}
-                    >
-                      {ele}
-                      <RxCross2 className="cursor-pointer" />
-                    </li>
-                  ))}
-                </ul>
+
+                {/* Add Button */}
+                <Button
+                  content={"Add"}
+                  customCss={"rounded text-sm px-4 py-1"}
+                  handleClick={handleAddIngredient}
+                />
               </div>
+              <ul className="flex flex-col gap-2">
+                {formDetails.ingredients.map((ele, index) => (
+                  <li
+                    className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
+                    key={ele}
+                  >
+                    {ele}
+                    <RxCross2
+                      className="cursor-pointer"
+                      onClick={() => removeIngredient(index)}
+                    />
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
           <hr />
@@ -318,7 +506,11 @@ const AddRecipe = () => {
                       <p className="text-sm text-gray-700">{ele}</p>
                     </div>
                     <div>
-                      <RxCross2 className="cursor-pointer" size={20} />
+                      <RxCross2
+                        className="cursor-pointer"
+                        size={20}
+                        onClick={() => removeInstruction(i)}
+                      />
                     </div>
                   </li>
                 ))}
