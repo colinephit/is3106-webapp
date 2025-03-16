@@ -6,12 +6,16 @@ exports.getAllCategories = async (req, res) => {
         const searchQuery = req.query.search || "";
         const regex = new RegExp(searchQuery, "i"); // Case-insensitive search
 
-        const categories = await Category.find({ categoryName: regex })
-            .sort({ categoryName: 1 });
+        const categories = await Category.find({ categoryName: regex }).sort({
+            categoryName: 1,
+        });
 
         res.status(200).json(categories);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching categories", error: error.message });
+        res.status(500).json({
+            message: "Error fetching categories",
+            error: error.message,
+        });
     }
 };
 
@@ -20,11 +24,15 @@ exports.addCategory = async (req, res) => {
     try {
         const { categoryName } = req.body;
         if (!categoryName) {
-            return res.status(400).json({ message: "Category name is required" });
+            return res
+                .status(400)
+                .json({ message: "Category name is required" });
         }
 
         // Check if the category already exists
-        const existingCategory = await Category.findOne({ categoryName: { $regex: new RegExp(`^${categoryName}$`, "i") } });
+        const existingCategory = await Category.findOne({
+            categoryName: { $regex: new RegExp(`^${categoryName}$`, "i") },
+        });
         if (existingCategory) {
             return res.status(400).json({ message: "Category already exists" });
         }
@@ -32,8 +40,48 @@ exports.addCategory = async (req, res) => {
         const newCategory = new Category({ categoryName });
         await newCategory.save();
 
-        res.status(201).json({ message: "Category added successfully", category: newCategory });
+        res.status(201).json({
+            message: "Category added successfully",
+            category: newCategory,
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error adding category", error: error.message });
+        res.status(500).json({
+            message: "Error adding category",
+            error: error.message,
+        });
+    }
+};
+
+// to edit category (only for admin!)
+exports.editCategory = async (req, res) => {
+    try {
+        const { categoryName } = req.body;
+        if (!categoryName) {
+            return res
+                .status(400)
+                .json({ message: "Category name is required" });
+        }
+
+        // Check if the category already exists
+        const existingCategory = await Category.findOne({
+            categoryName: { $regex: new RegExp(`^${categoryName}$`, "i") },
+        });
+
+        if (existingCategory._id.toString() !== req.params.id) {
+            return res.status(409).json({ message: "Category already exists" });
+        }
+
+        existingCategory.categoryName = categoryName;
+        await existingCategory.save();
+
+        res.status(201).json({
+            message: "Category edited successfully",
+            category: existingCategory,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error editing category",
+            error: error.message,
+        });
     }
 };

@@ -33,36 +33,86 @@ exports.searchIngredients = async (req, res) => {
         const regex = new RegExp(searchQuery, "i"); // for case-insensitive regex
 
         // to find ingredients that match the search term (or return all if no search term)
-        const ingredients = await Ingredient.find({ ingredientName: regex })
-            .sort({ ingredientName: 1 }); // to sort ingredients alphabetically
+        const ingredients = await Ingredient.find({
+            ingredientName: regex,
+        }).sort({ ingredientName: 1 }); // to sort ingredients alphabetically
 
         res.status(200).json(ingredients);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching ingredients", error: error.message });
+        res.status(500).json({
+            message: "Error fetching ingredients",
+            error: error.message,
+        });
     }
 };
-
 
 // to add a new ingredient (only if not already present)
 exports.addIngredient = async (req, res) => {
     try {
         const { ingredientName } = req.body;
         if (!ingredientName) {
-            return res.status(400).json({ message: "Ingredient name is required" });
+            return res
+                .status(400)
+                .json({ message: "Ingredient name is required" });
         }
 
         // Check if ingredient already exists (case insensitive)
-        const existingIngredient = await Ingredient.findOne({ ingredientName: { $regex: new RegExp(`^${ingredientName}$`, "i") } });
+        const existingIngredient = await Ingredient.findOne({
+            ingredientName: { $regex: new RegExp(`^${ingredientName}$`, "i") },
+        });
         if (existingIngredient) {
-            return res.status(400).json({ message: "Ingredient already exists" });
+            return res
+                .status(400)
+                .json({ message: "Ingredient already exists" });
         }
 
         const newIngredient = new Ingredient({ ingredientName });
         await newIngredient.save();
 
-        res.status(201).json({ message: "Ingredient added successfully", ingredient: newIngredient });
+        res.status(201).json({
+            message: "Ingredient added successfully",
+            ingredient: newIngredient,
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error adding ingredient", error: error.message });
+        res.status(500).json({
+            message: "Error adding ingredient",
+            error: error.message,
+        });
+    }
+};
+
+// to edit an ingredient (only if not already present)
+exports.editIngredient = async (req, res) => {
+    try {
+        const { ingredientName } = req.body;
+        if (!ingredientName) {
+            return res
+                .status(400)
+                .json({ message: "Ingredient name is required" });
+        }
+
+        // Check if ingredient already exists (case insensitive)
+        const existingIngredient = await Ingredient.findOne({
+            ingredientName: { $regex: new RegExp(`^${ingredientName}$`, "i") },
+        });
+        if (existingIngredient._id.toString() !== req.params.id) {
+            return res
+                .status(400)
+                .json({ message: "Ingredient already exists" });
+        }
+
+        existingIngredient.ingredientName = ingredientName;
+        await existingIngredient.save();
+
+        res.status(201).json({
+            message: "Ingredient edited successfully",
+            ingredient: existingIngredient,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: "Error editing ingredient",
+            error: error.message,
+        });
     }
 };
 
@@ -76,9 +126,15 @@ exports.deleteIngredient = async (req, res) => {
             return res.status(404).json({ message: "Ingredient not found" });
         }
 
-        res.status(200).json({ message: "Ingredient deleted successfully", deletedIngredient: ingredient });
+        res.status(200).json({
+            message: "Ingredient deleted successfully",
+            deletedIngredient: ingredient,
+        });
     } catch (error) {
-        res.status(500).json({ message: "Error deleting ingredient", error: error.message });
+        res.status(500).json({
+            message: "Error deleting ingredient",
+            error: error.message,
+        });
     }
 };
 
@@ -91,7 +147,9 @@ exports.initializeDefaultIngredients = async () => {
             await Ingredient.insertMany(defaultIngredients);
             console.log("Default ingredients initialized");
         } else {
-            console.log("Default ingredients already exist. No need to initialize.");
+            console.log(
+                "Default ingredients already exist. No need to initialize."
+            );
         }
     } catch (error) {
         console.error("Error initializing default ingredients:", error.message);
