@@ -1,5 +1,25 @@
 const Category = require("../models/categoryModel");
 
+// to search all ingredients (supports search query and sorting alphabetically)
+exports.searchCategories = async (req, res) => {
+    try {
+        const searchQuery = req.query.search || ""; // to get search term from query parameter
+        const regex = new RegExp(searchQuery, "i"); // for case-insensitive regex
+
+        // to find ingredients that match the search term (or return all if no search term)
+        const categories = await Category.find({ categoryName: regex }).sort({
+            categoryName: 1,
+        }); // to sort ingredients alphabetically
+
+        res.status(200).json(categories);
+    } catch (error) {
+        res.status(500).json({
+            message: "Error fetching categories",
+            error: error.message,
+        });
+    }
+};
+
 // to get all categories (with alphabetical order & search)
 exports.getAllCategories = async (req, res) => {
     try {

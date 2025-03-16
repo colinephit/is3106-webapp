@@ -18,38 +18,43 @@ const EditRecipe = () => {
   const [updateRecipe, { isLoading }] = useUpdateRecipeMutation();
 
   const [formDetails, setFormDetails] = useState({
-    title: data?.title || "",
+    title: data?.recipeName || "",
     image: data?.image || "",
     description: data?.description || "",
-    calories: data?.calories || "",
+    difficultyLevel: data?.difficultyLevel || "",
     cookingTime: data?.cookingTime || "",
     ingredients: data?.ingredients || [],
+    categories: data?.categories || [],
     instructions: data?.instructions || [],
   });
 
   const [progress, setProgress] = useState(0);
   const [ingredient, setIngredient] = useState("");
+  const [category, setCategory] = useState("");
   const [instruction, setInstruction] = useState("");
   const [focused, setFocused] = useState({
-    title: "",
-    calories: "",
+    recipeName: "",
+    difficultyLevel: "",
     cookingTime: "",
     ingredient: "",
+    category: "",
   });
 
   useEffect(() => {
-    if (!rest?.isLoading) {
+    if (data) {
+      // Ensure data is loaded before updating state
       setFormDetails({
-        title: data?.title,
-        image: data?.image,
-        description: data?.description,
-        calories: data?.calories,
-        cookingTime: data?.cookingTime,
-        ingredients: data?.ingredients,
-        instructions: data?.instructions,
+        recipeName: data.recipeName || "",
+        image: data.image || "",
+        description: data.description || "",
+        difficultyLevel: data.difficultyLevel || "",
+        cookingTime: data.cookingTime || "",
+        ingredients: data.ingredients || [],
+        categories: data.categories || [],
+        instructions: data.instructions || [],
       });
     }
-  }, [rest?.isLoading]);
+  }, [data]); // Depend only on `data`
 
   const handleFocus = (e) => {
     setFocused({ ...focused, [e.target.id]: true });
@@ -58,6 +63,12 @@ const EditRecipe = () => {
   const handleChange = (e) => {
     if (e.target.id === "image") {
       uploadImage(e, setProgress, setFormDetails, formDetails);
+    } else if (id === "difficultyLevel") {
+      let intValue = parseInt(value, 10); // Convert to integer
+      if (isNaN(intValue) || intValue < 1) intValue = 1;
+      if (intValue > 5) intValue = 5;
+
+      setFormDetails({ ...formDetails, [id]: intValue });
     } else {
       setFormDetails({ ...formDetails, [e.target.id]: e.target.value });
     }
@@ -73,6 +84,16 @@ const EditRecipe = () => {
     setIngredient("");
   };
 
+  const addCategory = () => {
+    if (!category) {
+      return toast.error("Category cannot be empty");
+    }
+    const updatedFormDetails = { ...formDetails };
+    updatedFormDetails.categories.push(category);
+    setFormDetails(updatedFormDetails);
+    setCategory("");
+  };
+
   const addInstruction = () => {
     if (!instruction) {
       return toast.error("Instruction cannot be empty");
@@ -83,6 +104,24 @@ const EditRecipe = () => {
     setInstruction("");
   };
 
+  const removeIngredient = (index) => {
+    const updatedIngredients = [...formDetails.ingredients];
+    updatedIngredients.splice(index, 1);
+    setFormDetails({ ...formDetails, ingredients: updatedIngredients });
+  };
+
+  const removeCategory = (index) => {
+    const updatedCategories = [...formDetails.categories];
+    updatedCategories.splice(index, 1);
+    setFormDetails({ ...formDetails, categories: updatedCategories });
+  };
+
+  const removeInstruction = (index) => {
+    const updatedInstructions = [...formDetails.instructions];
+    updatedInstructions.splice(index, 1);
+    setFormDetails({ ...formDetails, instructions: updatedInstructions });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -91,6 +130,14 @@ const EditRecipe = () => {
       return toast.error("Ingredients cannot be empty");
     if (!formDetails.instructions.length)
       return toast.error("Instructions cannot be empty");
+
+    if (
+      !formDetails.difficultyLevel ||
+      formDetails.difficultyLevel < 1 ||
+      formDetails.difficultyLevel > 5
+    ) {
+      return toast.error("Difficulty level must be between 1 and 5");
+    }
 
     try {
       const recipe = await toast.promise(
@@ -130,11 +177,11 @@ const EditRecipe = () => {
                 <input
                   type="text"
                   onChange={handleChange}
-                  value={formDetails.title}
-                  id="title"
-                  name="title"
+                  value={formDetails.recipeName}
+                  id="recipeName"
+                  name="recipeName"
                   onBlur={handleFocus}
-                  focused={focused.title.toString()}
+                  focused={focused.recipeName.toString()}
                   pattern={"^.{3,}$"}
                   required
                   aria-required="true"
@@ -176,28 +223,78 @@ const EditRecipe = () => {
             <hr />
             <div className="flex flex-col sm:flex-row justify-between">
               <label
-                htmlFor="calories"
+                htmlFor="categories"
                 className="text-sm font-semibold mb-3 basis-1/2"
               >
-                Total calories
+                Add category
+              </label>
+              <div className="flex flex-col basis-1/2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-1 justify-between">
+                    <input
+                      type="text"
+                      onChange={(e) => setCategory(e.target.value)}
+                      value={category}
+                      id="category"
+                      name="category"
+                      onBlur={handleFocus}
+                      focused={focused.category.toString()}
+                      pattern={"^.{3,}$"}
+                      aria-required="true"
+                      aria-describedby="category-error"
+                      placeholder="Italian"
+                      className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
+                    />
+                    <Button
+                      content={"Add"}
+                      customCss={"rounded text-sm px-4 py-1"}
+                      handleClick={addCategory}
+                    />
+                  </div>
+                  <ul className="flex flex-col gap-2">
+                    {formDetails.categories.map((ele, index) => (
+                      <li
+                        className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
+                        key={ele._id}
+                      >
+                        {ele.categoryName}
+                        <RxCross2
+                          className="cursor-pointer"
+                          onClick={() => removeCategory(index)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <hr />
+            <div className="flex flex-col sm:flex-row justify-between">
+              <label
+                htmlFor="difficultyLevel"
+                className="text-sm font-semibold mb-3 basis-1/2"
+              >
+                Difficulty Level
               </label>
               <div className="flex flex-col basis-1/2">
                 <input
                   type="number"
                   onChange={handleChange}
-                  value={formDetails.calories}
-                  id="calories"
+                  value={formDetails.difficultyLevel}
+                  id="difficultyLevel"
                   required
-                  name="calories"
+                  name="difficultyLevel"
+                  min="1"
+                  max="5"
                   onBlur={handleFocus}
-                  focused={focused.calories.toString()}
+                  focused={focused.difficultyLevel.toString()}
                   aria-required="true"
-                  aria-describedby="calories-error"
-                  placeholder="Enter total calories"
+                  aria-describedby="difficultyLevel-error"
+                  placeholder="Enter difficulty level (1-5)"
                   className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary"
                 />
                 <span
-                  id="calories-error"
+                  id="difficultyLevel-error"
                   className="hidden text-red-500 pl-2 text-sm mt-1"
                 >
                   Should not include letters or special characters
@@ -267,13 +364,16 @@ const EditRecipe = () => {
                     />
                   </div>
                   <ul className="flex flex-col gap-2">
-                    {formDetails.ingredients.map((ele) => (
+                    {formDetails.ingredients.map((ele, index) => (
                       <li
                         className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                        key={ele}
+                        key={ele._id}
                       >
-                        {ele}
-                        <RxCross2 className="cursor-pointer" />
+                        {ele.ingredientName}
+                        <RxCross2
+                          className="cursor-pointer"
+                          onClick={() => removeIngredient(index)}
+                        />
                       </li>
                     ))}
                   </ul>
@@ -322,6 +422,7 @@ const EditRecipe = () => {
                         <RxCross2
                           className="cursor-pointer"
                           size={20}
+                          onClick={() => removeInstruction(i)}
                         />
                       </div>
                     </li>
