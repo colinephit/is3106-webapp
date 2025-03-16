@@ -98,10 +98,7 @@ const Avatar = () => {
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         <MenuItem>
-          <Link
-            to={"/profile"}
-            className="flex items-center"
-          >
+          <Link to={"/profile"} className="flex items-center">
             <MuiAvatar
               alt={user?.name}
               src={user?.profilePicture}
@@ -114,10 +111,7 @@ const Avatar = () => {
           <Box>
             <Divider />
             <MenuItem>
-              <Link
-                to="/recipe/add"
-                className="flex items-center"
-              >
+              <Link to="/recipes/add" className="flex items-center">
                 <ListItemIcon>
                   <RestaurantMenu fontSize="small" />
                 </ListItemIcon>
@@ -125,10 +119,7 @@ const Avatar = () => {
               </Link>
             </MenuItem>
             <MenuItem>
-              <Link
-                to="/blog/add"
-                className="flex items-center"
-              >
+              <Link to="/blog/add" className="flex items-center">
                 <ListItemIcon>
                   <Article fontSize="small" />
                 </ListItemIcon>
@@ -136,10 +127,7 @@ const Avatar = () => {
               </Link>
             </MenuItem>
             <MenuItem>
-              <Link
-                to="/recipe/my-recipes"
-                className="flex items-center"
-              >
+              <Link to="/recipe/my-recipes" className="flex items-center">
                 <ListItemIcon>
                   <Fastfood fontSize="small" />
                 </ListItemIcon>
@@ -147,10 +135,7 @@ const Avatar = () => {
               </Link>
             </MenuItem>
             <MenuItem>
-              <Link
-                to="/blog/my-blogs"
-                className="flex items-center"
-              >
+              <Link to="/blog/my-blogs" className="flex items-center">
                 <ListItemIcon>
                   <Description fontSize="small" />
                 </ListItemIcon>
@@ -160,10 +145,7 @@ const Avatar = () => {
           </Box>
         )}
         <MenuItem>
-          <Link
-            to="/recipe/saved"
-            className="flex items-center"
-          >
+          <Link to="/recipe/saved" className="flex items-center">
             <ListItemIcon>
               <Favorite fontSize="small" />
             </ListItemIcon>
