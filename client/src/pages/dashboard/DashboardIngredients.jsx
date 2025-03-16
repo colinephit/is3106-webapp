@@ -39,6 +39,7 @@ const DashboardIngredients = () => {
       refetch(); // Fetch updated ingredients list
     } catch (error) {
       console.error("Error adding ingredient:", error);
+      alert(error.data.message);
     }
   };
 

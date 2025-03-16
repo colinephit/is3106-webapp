@@ -35,7 +35,10 @@ const SignIn = () => {
           error: "Sign in failed",
         }
       );
-      dispatch(setCredentials({ ...userData }));
+      console.log(userData);
+      dispatch(
+        setCredentials({ user: userData.user, token: userData.accessToken })
+      );
       localStorage.setItem("persist", true);
       setFormDetails({ email: "", password: "" });
       navigate("/");
@@ -57,19 +60,13 @@ const SignIn = () => {
           </h2>
           <p className="text-center md:text-left text-sm">
             New to Recipen?{" "}
-            <Link
-              to={"/auth/signup"}
-              className="text-primary font-semibold"
-            >
+            <Link to={"/auth/signup"} className="text-primary font-semibold">
               Create an account
             </Link>
           </p>
         </div>
         {/* Sign in form */}
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={handleSubmit}
-        >
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <Input
             type={"email"}
             id={"email"}

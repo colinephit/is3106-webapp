@@ -248,11 +248,13 @@ const rateRecipe = async (req, res, next) => {
 const deleteRecipe = async (req, res, next) => {
   try {
     const foundRecipe = await Recipe.findById(req.params.id);
+    console.log("found recipe is", foundRecipe);
     if (!foundRecipe)
       return res.status(404).json({ message: "Recipe not found" });
 
-    if (foundRecipe.author !== req.user)
+    if (foundRecipe.author.toString() !== req.user.userId) {
       return res.status(401).json({ message: "Unauthorized" });
+    }
 
     await foundRecipe.deleteOne({ _id: req.params.id });
     res.sendStatus(204);

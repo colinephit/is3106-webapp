@@ -31,6 +31,7 @@ const DashboardCategories = () => {
       refetch(); // Fetch updated category list
     } catch (error) {
       console.error("Error adding category:", error);
+      alert(error.data.message);
     }
   };
 
