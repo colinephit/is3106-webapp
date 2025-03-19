@@ -19,6 +19,7 @@ const schema = mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Ingredient",
+        ingredientName: String,
         required: true,
       },
     ],
@@ -26,6 +27,7 @@ const schema = mongoose.Schema(
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
+        categoryName: String,
         required: true,
       },
     ],
