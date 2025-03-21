@@ -3,6 +3,7 @@ const {
     getAllCategories,
     addCategory,
     editCategory,
+    searchCategories,
 } = require("../controllers/categoryController");
 const verifyJwt = require("../middleware/verifyJwt");
 const verifyRoles = require("../middleware/verifyRoles");
@@ -12,9 +13,9 @@ const router = express.Router();
 
 // verified users can view or search for categories
 router.get(
-    "/list",
+    "/search",
     [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
-    getAllCategories
+    searchCategories
 );
 
 // only admin can add new categories

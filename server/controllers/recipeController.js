@@ -175,6 +175,13 @@ const updateRecipe = async (req, res, next) => {
       additionalInformation,
       status,
     } = req.body;
+
+    //logging
+    console.log("Request Body:", req.body);
+    console.log("Ingredients:", ingredients);
+    console.log("Categories:", categories);
+    console.log("recipeName:", recipeName);
+
     if (
       !recipeName ||
       !image ||
@@ -190,6 +197,10 @@ const updateRecipe = async (req, res, next) => {
     }
 
     const foundRecipe = await Recipe.findById(req.params.id);
+
+    //logging
+    console.log("foundRecipe", foundRecipe);
+
     if (!foundRecipe)
       return res.status(404).json({ message: "Recipe not found" });
 

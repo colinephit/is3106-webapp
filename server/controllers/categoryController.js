@@ -20,25 +20,6 @@ exports.searchCategories = async (req, res) => {
     }
 };
 
-// to get all categories (with alphabetical order & search)
-exports.getAllCategories = async (req, res) => {
-    try {
-        const searchQuery = req.query.search || "";
-        const regex = new RegExp(searchQuery, "i"); // Case-insensitive search
-
-        const categories = await Category.find({ categoryName: regex }).sort({
-            categoryName: 1,
-        });
-
-        res.status(200).json(categories);
-    } catch (error) {
-        res.status(500).json({
-            message: "Error fetching categories",
-            error: error.message,
-        });
-    }
-};
-
 // to add a new category (only for admin!)
 exports.addCategory = async (req, res) => {
     try {

@@ -112,10 +112,12 @@ const AddRecipe = () => {
     );
 
     if (existingIngredient) {
+      //logging
+      console.log("Existing ingredient:", existingIngredient);
       // If exists, add only the ID
       setFormDetails((prev) => ({
         ...prev,
-        ingredients: [...prev.ingredients, existingIngredient._id], // Store ID only
+        ingredients: [...prev.ingredients, { _id: existingIngredient._id, name: existingIngredient.ingredientName }], // Store ID only
       }));
     } else {
       // If doesn't exist, add to DB first
@@ -123,11 +125,14 @@ const AddRecipe = () => {
         const newIngredient = await addIngredientToDB({
           ingredientName: ingredientQuery,
         }).unwrap();
-
+        //logging
+        console.log("New ingredient:", newIngredient);
         setFormDetails((prev) => ({
           ...prev,
-          ingredients: [...prev.ingredients, newIngredient.ingredient._id], // Store new ID
+          ingredients: [...prev.ingredients, { _id: newIngredient.ingredient._id, name: newIngredient.ingredient.ingredientName }], // Store new ID
         }));
+        //logging
+        console.log("Form details:", formDetails);
 
         toast.success("Ingredient added successfully");
       } catch (error) {
@@ -137,6 +142,22 @@ const AddRecipe = () => {
 
     setIngredientQuery(""); // Reset input field
   };
+
+const handleAddIngredientClick = (ing) => {
+  setFormDetails((prev) => ({
+    ...prev,
+    ingredients: [...prev.ingredients, { _id: ing._id, name: ing.ingredientName }],
+  }));
+  setIngredientQuery("");
+};
+
+const handleAddCategoryClick = (cat) => {
+  setFormDetails((prev) => ({
+    ...prev,
+    categories: [...prev.categories, { _id: cat._id, name: cat.categoryName }],
+  }));
+  setCategoryQuery("");
+};
 
   const addInstruction = () => {
     if (!instruction) {
@@ -270,52 +291,46 @@ const AddRecipe = () => {
               Add category
             </label>
             <div className="flex flex-col basis-1/2">
-              <div className="relative flex flex-col gap-2">
-                <div className="relative flex gap-1 justify-between">
-                  <input
-                    type="text"
-                    onChange={(e) => setCategoryQuery(e.target.value)}
-                    value={categoryQuery}
-                    placeholder="Search or add a category"
-                    className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
-                  />
+                <div className="relative flex flex-col gap-2">
+                    <div className="relative flex gap-1 justify-between">
+                        <input
+                            type="text"
+                            onChange={(e) => setCategoryQuery(e.target.value)}
+                            value={categoryQuery}
+                            placeholder="Search or add a category"
+                            className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
+                        />
 
-                  {categorySuggestions.length > 0 && (
-                    <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
-                      {categorySuggestions.map((cat) => (
-                        <li
-                          key={cat._id}
-                          onClick={() => {
-                            setFormDetails((prev) => ({
-                              ...prev,
-                              categories: [...prev.categories, cat._id],
-                            }));
-                            setCategoryQuery(""); // Clear input after selection
-                          }}
-                          className="p-2 cursor-pointer hover:bg-gray-200"
-                        >
-                          {cat.categoryName}
-                        </li>
-                      ))}
+                        {categorySuggestions.length > 0 && (
+                            <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
+                                {categorySuggestions.map((cat) => (
+                                    <li
+                                        key={cat._id}
+                                        onClick={() => handleAddCategoryClick(cat)}
+                                        className="p-2 cursor-pointer hover:bg-gray-200"
+                                    >
+                                        {cat.categoryName}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                    <ul className="flex flex-col gap-2">
+                        {formDetails.categories.map((ele, index) => (
+                            <li
+                                className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
+                                key={ele._id}
+                            >
+                                {ele.name}
+                                <RxCross2
+                                    className="cursor-pointer"
+                                    onClick={() => removeCategory(index)}
+                                />
+                            </li>
+                        ))}
                     </ul>
-                  )}
                 </div>
-
-                <ul className="flex flex-col gap-2">
-                  {formDetails.categories.map((ele, index) => (
-                    <li
-                      className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                      key={ele}
-                    >
-                      {ele}
-                      <RxCross2
-                        className="cursor-pointer"
-                        onClick={() => removeCategory(index)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
             </div>
           </div>
           <hr />
@@ -428,13 +443,7 @@ const AddRecipe = () => {
                       {ingredientSuggestions.map((ing) => (
                         <li
                           key={ing._id}
-                          onClick={() => {
-                            setFormDetails((prev) => ({
-                              ...prev,
-                              ingredients: [...prev.ingredients, ing._id],
-                            }));
-                            setIngredientQuery(""); // Clear input after selection
-                          }}
+                          onClick={() => handleAddIngredientClick(ing)}
                           className="p-2 cursor-pointer hover:bg-gray-200"
                         >
                           {ing.ingredientName}
@@ -443,8 +452,7 @@ const AddRecipe = () => {
                     </ul>
                   )}
                 </div>
-
-                {/* Add Button */}
+                {/* Add button for ingredients not yet in database */}
                 <Button
                   content={"Add"}
                   customCss={"rounded text-sm px-4 py-1"}
@@ -457,7 +465,7 @@ const AddRecipe = () => {
                     className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
                     key={ele}
                   >
-                    {ele}
+                    {ele.name}
                     <RxCross2
                       className="cursor-pointer"
                       onClick={() => removeIngredient(index)}

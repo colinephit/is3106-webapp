@@ -9,6 +9,11 @@ import {
   useGetRecipeQuery,
   useUpdateRecipeMutation,
 } from "../../features/recipe/recipeApiSlice";
+import {
+  useAddIngredientMutation,
+  useGetIngredientsQuery,
+} from "../../features/ingredient/ingredientApiSlice";
+import { useGetCategoriesQuery } from "../../features/category/categoryApiSlice";
 import { useParams } from "react-router-dom";
 
 const EditRecipe = () => {
@@ -40,21 +45,65 @@ const EditRecipe = () => {
     category: "",
   });
 
-  useEffect(() => {
-    if (data) {
-      // Ensure data is loaded before updating state
-      setFormDetails({
-        recipeName: data.recipeName || "",
-        image: data.image || "",
-        description: data.description || "",
-        difficultyLevel: data.difficultyLevel || "",
-        cookingTime: data.cookingTime || "",
-        ingredients: data.ingredients || [],
-        categories: data.categories || [],
-        instructions: data.instructions || [],
+  const [ingredientQuery, setIngredientQuery] = useState("");
+  const [ingredientSuggestions, setIngredientSuggestions] = useState([]);
+  const [addIngredientToDB] = useAddIngredientMutation();
+  const { data: ingredients, isLoading: isLoadingIngredients } =
+      useGetIngredientsQuery(ingredientQuery, {
+        skip: ingredientQuery.length < 2, // Don't fetch if the query length is less than 2
       });
-    }
-  }, [data]); // Depend only on `data`
+  
+    useEffect(() => {
+      console.log("Ingredients fetched:", ingredients);
+      if (ingredientQuery.length < 2) {
+        setIngredientSuggestions([]);
+        return;
+      }
+  
+      if (ingredients) {
+        setIngredientSuggestions(ingredients);
+      }
+    }, [ingredients, ingredientQuery]);
+
+  const [categoryQuery, setCategoryQuery] = useState("");
+  const [categorySuggestions, setCategorySuggestions] = useState([]);
+  const { data: categories, isLoading: isLoadingCategories } =
+      useGetCategoriesQuery(categoryQuery, {
+        skip: categoryQuery.length < 2, // Don't fetch if the query length is less than 2
+      });
+  
+    useEffect(() => {
+      console.log("Categories fetched:", categories);
+      if (categoryQuery.length < 2) {
+        setCategorySuggestions([]);
+        return;
+      }
+  
+      if (categories) {
+        setCategorySuggestions(categories);
+      }
+    }, [categories, categoryQuery]);
+
+    useEffect(() => {
+      if (data) {
+        setFormDetails({
+          recipeName: data.recipeName || "",
+          image: data.image || "",
+          description: data.description || "",
+          difficultyLevel: data.difficultyLevel || "",
+          cookingTime: data.cookingTime || "",
+          ingredients: data.ingredients.map(ing => ({
+            _id: ing._id,
+            ingredientName: ing.ingredientName,
+          })) || [],
+          categories: data.categories.map(cat => ({
+            _id: cat._id,
+            categoryName: cat.categoryName,
+          })) || [],
+          instructions: data.instructions || [],
+        });
+      }
+    }, [data]); // Depend only on `data`
 
   const handleFocus = (e) => {
     setFocused({ ...focused, [e.target.id]: true });
@@ -74,7 +123,7 @@ const EditRecipe = () => {
     }
   };
 
-  const addIngredient = () => {
+  const handleAddIngredient = () => {
     if (!ingredient) {
       return toast.error("Ingredient cannot be empty");
     }
@@ -82,6 +131,24 @@ const EditRecipe = () => {
     updatedFormDetails.ingredients.push(ingredient);
     setFormDetails(updatedFormDetails);
     setIngredient("");
+  };
+
+  const handleAddIngredientClick = (ing) => {
+    setFormDetails((prev) => ({
+      ...prev,
+      ingredients: [...prev.ingredients, { _id: ing._id, ingredientName: ing.ingredientName }],
+    }));
+    setIngredientQuery("");
+    console.log("Form Details after ingredient add:", formDetails);
+  };
+  
+  const handleAddCategoryClick = (cat) => {
+    setFormDetails((prev) => ({
+      ...prev,
+      categories: [...prev.categories, { _id: cat._id, categoryName: cat.categoryName }],
+    }));
+    setCategoryQuery("");
+    console.log("Form Details after category add:", formDetails);
   };
 
   const addCategory = () => {
@@ -98,9 +165,10 @@ const EditRecipe = () => {
     if (!instruction) {
       return toast.error("Instruction cannot be empty");
     }
-    const updatedFormDetails = { ...formDetails };
-    updatedFormDetails.instructions.push(instruction);
-    setFormDetails(updatedFormDetails);
+    setFormDetails((prev) => ({
+      ...prev,
+      instructions: [...prev.instructions, instruction], // Create a new array
+    }));
     setInstruction("");
   };
 
@@ -123,6 +191,7 @@ const EditRecipe = () => {
   };
 
   const handleSubmit = async (e) => {
+    console.log("Form Details before submit:", formDetails);
     e.preventDefault();
 
     if (!formDetails.image) return toast.error("Upload recipe image");
@@ -226,47 +295,53 @@ const EditRecipe = () => {
                 htmlFor="categories"
                 className="text-sm font-semibold mb-3 basis-1/2"
               >
-                Add category
-              </label>
-              <div className="flex flex-col basis-1/2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-1 justify-between">
-                    <input
-                      type="text"
-                      onChange={(e) => setCategory(e.target.value)}
-                      value={category}
-                      id="category"
-                      name="category"
-                      onBlur={handleFocus}
-                      focused={focused.category.toString()}
-                      pattern={"^.{3,}$"}
-                      aria-required="true"
-                      aria-describedby="category-error"
-                      placeholder="Italian"
-                      className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
-                    />
-                    <Button
-                      content={"Add"}
-                      customCss={"rounded text-sm px-4 py-1"}
-                      handleClick={addCategory}
-                    />
+                Add Category
+                </label>
+                <div className="flex flex-col basis-1/2">
+                  <div className="relative flex flex-col gap-2">
+                    {/* Input field for searching or adding categories */}
+                    <div className="relative flex gap-1 justify-between">
+                      <input
+                        type="text"
+                        onChange={(e) => setCategoryQuery(e.target.value)}
+                        value={categoryQuery}
+                        placeholder="Search or add a category"
+                        className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
+                      />
+
+                      {/* Category suggestions dropdown */}
+                      {categorySuggestions.length > 0 && (
+                        <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
+                          {categorySuggestions.map((cat) => (
+                            <li
+                              key={cat._id}
+                              onClick={() => handleAddCategoryClick(cat)} // Handle category click
+                              className="p-2 cursor-pointer hover:bg-gray-200"
+                            >
+                              {cat.categoryName}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Display existing categories */}
+                    <ul className="flex flex-col gap-2">
+                      {formDetails.categories.map((ele, index) => (
+                        <li
+                          className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
+                          key={ele._id}
+                        >
+                          {ele.categoryName} {/* Display category name */}
+                          <RxCross2
+                            className="cursor-pointer"
+                            onClick={() => removeCategory(index)} // Remove category functionality
+                          />
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="flex flex-col gap-2">
-                    {formDetails.categories.map((ele, index) => (
-                      <li
-                        className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                        key={ele._id}
-                      >
-                        {ele.categoryName}
-                        <RxCross2
-                          className="cursor-pointer"
-                          onClick={() => removeCategory(index)}
-                        />
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-              </div>
             </div>
             <hr />
             <div className="flex flex-col sm:flex-row justify-between">
@@ -338,47 +413,60 @@ const EditRecipe = () => {
                 htmlFor="ingredient"
                 className="text-sm font-semibold mb-3 basis-1/2"
               >
-                Add ingredients
-              </label>
-              <div className="flex flex-col basis-1/2">
-                <div className="flex flex-col gap-2">
-                  <div className="flex gap-1 justify-between">
-                    <input
-                      type="text"
-                      onChange={(e) => setIngredient(e.target.value)}
-                      value={ingredient}
-                      id="ingredient"
-                      name="ingredient"
-                      onBlur={handleFocus}
-                      focused={focused.ingredient.toString()}
-                      pattern={"^.{3,}$"}
-                      aria-required="true"
-                      aria-describedby="ingredient-error"
-                      placeholder="2 medium onion"
-                      className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
-                    />
+                Add Ingredients
+                </label>
+                <div className="flex flex-col basis-1/2">
+                  <div className="relative flex flex-col gap-2">
+                    {/* Input field for searching or adding ingredients */}
+                    <div className="relative flex gap-1 justify-between">
+                      <input
+                        type="text"
+                        onChange={(e) => setIngredientQuery(e.target.value)} // Update ingredient query state
+                        value={ingredientQuery}
+                        placeholder="Search or add an ingredient"
+                        className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
+                      />
+
+                      {/* Ingredient suggestions dropdown */}
+                      {ingredientSuggestions.length > 0 && (
+                        <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
+                          {ingredientSuggestions.map((ing) => (
+                            <li
+                              key={ing._id}
+                              onClick={() => handleAddIngredientClick(ing)} // Add ingredient on click
+                              className="p-2 cursor-pointer hover:bg-gray-200"
+                            >
+                              {ing.ingredientName}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Add button for ingredients not yet in database */}
                     <Button
                       content={"Add"}
                       customCss={"rounded text-sm px-4 py-1"}
-                      handleClick={addIngredient}
+                      handleClick={handleAddIngredient} // Handle adding ingredient when clicked
                     />
                   </div>
+
+                  {/* Display added ingredients */}
                   <ul className="flex flex-col gap-2">
                     {formDetails.ingredients.map((ele, index) => (
                       <li
                         className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                        key={ele._id}
+                        key={ele._id} // Unique key for each ingredient
                       >
-                        {ele.ingredientName}
+                        {ele.ingredientName} {/* Display ingredient name */}
                         <RxCross2
                           className="cursor-pointer"
-                          onClick={() => removeIngredient(index)}
+                          onClick={() => removeIngredient(index)} // Remove ingredient on click
                         />
                       </li>
                     ))}
                   </ul>
                 </div>
-              </div>
             </div>
             <hr />
             <div className="flex flex-col gap-4 justify-between">
