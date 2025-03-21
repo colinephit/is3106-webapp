@@ -255,15 +255,19 @@ const rateRecipe = async (req, res, next) => {
 const deleteRecipe = async (req, res, next) => {
   try {
     const foundRecipe = await Recipe.findById(req.params.id);
-    if (!foundRecipe)
+
+    if (!foundRecipe) {
       return res.status(404).json({ message: "Recipe not found" });
+    }
 
-    if (foundRecipe.author !== req.user)
+    if (foundRecipe.author.toString() !== req.user.toString()) {
       return res.status(401).json({ message: "Unauthorized" });
+    }
 
-    await foundRecipe.deleteOne({ _id: req.params.id });
-    res.sendStatus(204);
+    await Recipe.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Recipe deleted" });
   } catch (error) {
+    console.error("Error deleting recipe:", error);
     next(error);
   }
 };
@@ -291,7 +295,7 @@ const addComment = async (req, res, next) => {
     next(error);
   }
 };
-
+/*
 const deleteComment = async (req, res, next) => {
   try {
     const { recipeId, commentId } = req.params;
@@ -313,6 +317,35 @@ const deleteComment = async (req, res, next) => {
 
     res.status(200).json({ message: "Comment deleted successfully." });
   } catch (error) {
+    next(error);
+  }
+};
+*/
+
+const deleteComment = async (req, res, next) => {
+  try {
+    const { recipeId, commentId } = req.params;
+
+    const recipe = await Recipe.findById(recipeId);
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found." });
+    }
+
+    const commentIndex = recipe.comments.findIndex((comment) =>
+      comment._id.equals(commentId)
+    );
+
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: "Comment not found." });
+    }
+
+    recipe.comments.splice(commentIndex, 1);
+    await recipe.save();
+
+    res.status(200).json({ message: "Comment deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
     next(error);
   }
 };
