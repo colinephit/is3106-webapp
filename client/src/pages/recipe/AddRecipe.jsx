@@ -189,13 +189,14 @@ const handleAddCategoryClick = (cat) => {
     setFormDetails({ ...formDetails, instructions: updatedInstructions });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, status) => {
     console.log("submit button clicked");
     e.preventDefault();
 
     console.log(formDetails);
 
-    //if (!formDetails.image) return toast.error("Upload recipe image");
+    if (!formDetails.image) 
+      return toast.error("Upload recipe image");
     if (!formDetails.ingredients.length)
       return toast.error("Ingredients cannot be empty");
     if (!formDetails.instructions.length)
@@ -212,7 +213,7 @@ const handleAddCategoryClick = (cat) => {
 
     try {
       const recipe = await toast.promise(
-        addRecipe({ ...formDetails }).unwrap(),
+        addRecipe({ ...formDetails, status: status }).unwrap(),
         {
           pending: "Please wait...",
           success: "Recipe added successfully",
@@ -525,12 +526,20 @@ const handleAddCategoryClick = (cat) => {
               </ul>
             </div>
           </div>
-          <Button
-            content={"Add recipe"}
-            type={"submit"}
-            customCss={"rounded px-4 py-1 max-w-max"}
-            loading={isLoading}
-          />
+          <button
+            type="button"
+            className="rounded px-4 py-1 max-w-max"
+            onClick={(e) => handleSubmit(e, "Draft")}
+          >
+            Save as Draft
+          </button>
+          <button
+            type="button"
+            className="rounded px-4 py-1 max-w-max"
+            onClick={(e) => handleSubmit(e, "Published")}
+          >
+            Publish Recipe
+          </button>
         </div>
         <hr className="block md:hidden mt-6" />
         {/* Upload recipe image */}

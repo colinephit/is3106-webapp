@@ -14,6 +14,13 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags: ["recipes"],
         }),
+        getMyRecipes: builder.query({
+            query: () => ({
+                url: "/recipes/ownList",
+                method: "GET",
+            }),
+            providesTags: ["recipes"],
+        }),
         addRecipe: builder.mutation({
             query: (recipeData) => ({
                 url: "/recipes/create",
@@ -51,6 +58,13 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
             }),
             invalidatesTags: ["recipes"],
         }),
+        publishDraftRecipe: builder.mutation({
+            query: ({ recipeId }) => ({
+              url: `/recipes/${recipeId}`,
+              method: "PATCH",
+            }),
+            invalidatesTags: ["recipes"],
+          }),
         commentRecipe: builder.mutation({
             query: (args) => {
                 const { recipeId, comment } = args;
@@ -90,10 +104,12 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
 export const {
     useGetRecipeQuery,
     useGetRecipesQuery,
+    useGetMyRecipesQuery,
     useAddRecipeMutation,
     useUpdateRecipeMutation,
     useRateRecipeMutation,
     useDeleteRecipeMutation,
+    usePublishDraftRecipeMutation,
     useCommentRecipeMutation,
     useDeleteCommentRecipeMutation,
     useToggleFavoriteMutation,

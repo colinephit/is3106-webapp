@@ -4,6 +4,7 @@ const {
     getRecipe,
     addRecipe,
     updateRecipe,
+    publishRecipe,
     rateRecipe,
     deleteRecipe,
     addComment,
@@ -51,6 +52,10 @@ router
     .put(
         [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
         updateRecipe
+    )
+    .patch( 
+        [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
+        publishRecipe 
     )
     .delete(
         [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],

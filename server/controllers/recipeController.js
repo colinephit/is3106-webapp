@@ -221,6 +221,27 @@ const updateRecipe = async (req, res, next) => {
   }
 };
 
+const publishRecipe = async (req, res, next) => {
+  try {
+    const { id } = req.params; 
+
+    // Update the recipe's status to "Published"
+    const updatedRecipe = await Recipe.findByIdAndUpdate(
+      id,
+      { status: "Published" },
+      { new: true } 
+    );
+
+    if (!updatedRecipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    res.status(200).json(updatedRecipe); 
+  } catch (error) {
+    next(error); 
+  }
+};
+
 const rateRecipe = async (req, res, next) => {
   try {
     const { rating } = req.body;
@@ -448,6 +469,7 @@ module.exports = {
   getRecipe,
   addRecipe,
   updateRecipe,
+  publishRecipe,
   rateRecipe,
   deleteRecipe,
   addComment,
