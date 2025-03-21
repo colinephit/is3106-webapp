@@ -54,7 +54,7 @@ const EditRecipe = () => {
       });
   
     useEffect(() => {
-      console.log("Ingredients fetched:", ingredients);
+      //console.log("Ingredients fetched:", ingredients);
       if (ingredientQuery.length < 2) {
         setIngredientSuggestions([]);
         return;
@@ -73,7 +73,7 @@ const EditRecipe = () => {
       });
   
     useEffect(() => {
-      console.log("Categories fetched:", categories);
+      //console.log("Categories fetched:", categories);
       if (categoryQuery.length < 2) {
         setCategorySuggestions([]);
         return;
@@ -139,7 +139,7 @@ const EditRecipe = () => {
       ingredients: [...prev.ingredients, { _id: ing._id, ingredientName: ing.ingredientName }],
     }));
     setIngredientQuery("");
-    console.log("Form Details after ingredient add:", formDetails);
+    //console.log("Form Details after ingredient add:", formDetails);
   };
   
   const handleAddCategoryClick = (cat) => {
@@ -148,17 +148,7 @@ const EditRecipe = () => {
       categories: [...prev.categories, { _id: cat._id, categoryName: cat.categoryName }],
     }));
     setCategoryQuery("");
-    console.log("Form Details after category add:", formDetails);
-  };
-
-  const addCategory = () => {
-    if (!category) {
-      return toast.error("Category cannot be empty");
-    }
-    const updatedFormDetails = { ...formDetails };
-    updatedFormDetails.categories.push(category);
-    setFormDetails(updatedFormDetails);
-    setCategory("");
+    //console.log("Form Details after category add:", formDetails);
   };
 
   const addInstruction = () => {
@@ -191,7 +181,7 @@ const EditRecipe = () => {
   };
 
   const handleSubmit = async (e) => {
-    console.log("Form Details before submit:", formDetails);
+    //console.log("Form Details before submit:", formDetails);
     e.preventDefault();
 
     if (!formDetails.image) return toast.error("Upload recipe image");
@@ -225,7 +215,7 @@ const EditRecipe = () => {
 
   return (
     <section className="box flex flex-col gap-6">
-      <h2 className="font-bold text-xl">Add New Recipe</h2>
+      <h2 className="font-bold text-xl">Edit Recipe</h2>
       <hr />
       {rest.isLoading ? (
         <ComponentLoading />

@@ -173,14 +173,10 @@ const updateRecipe = async (req, res, next) => {
       categories,
       instructions,
       additionalInformation,
-      status,
+      // status,
     } = req.body;
 
-    //logging
-    console.log("Request Body:", req.body);
-    console.log("Ingredients:", ingredients);
-    console.log("Categories:", categories);
-    console.log("recipeName:", recipeName);
+    //console.log("Request Body:", req.body);
 
     if (
       !recipeName ||
@@ -190,21 +186,20 @@ const updateRecipe = async (req, res, next) => {
       !cookingTime ||
       !ingredients.length ||
       !categories.length ||
-      !instructions.length ||
-      !status
+      !instructions.length 
+      // || !status
     ) {
       return res.status(422).json({ message: "Insufficient data" });
     }
 
     const foundRecipe = await Recipe.findById(req.params.id);
 
-    //logging
-    console.log("foundRecipe", foundRecipe);
+    //console.log("foundRecipe", foundRecipe);
 
     if (!foundRecipe)
       return res.status(404).json({ message: "Recipe not found" });
 
-    if (foundRecipe.author !== req.user)
+    if (foundRecipe.author.toString() !== req.user.toString())
       return res.status(401).json({ message: "Unauthorized" });
 
     foundRecipe.recipeName = recipeName;
@@ -216,11 +211,12 @@ const updateRecipe = async (req, res, next) => {
     foundRecipe.instructions = instructions;
     foundRecipe.categories = categories;
     foundRecipe.additionalInformation = additionalInformation;
-    foundRecipe.status = status;
+    //foundRecipe.status = status;
 
     const updatedRecipe = await foundRecipe.save();
     res.status(201).json(updatedRecipe);
   } catch (error) {
+    console.error("Error in updateRecipe:", error);
     next(error);
   }
 };
