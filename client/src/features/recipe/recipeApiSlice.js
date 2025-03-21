@@ -14,6 +14,21 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["recipes"],
     }),
+    getMyRecipes: builder.query({
+      query: () => ({
+        url: "/recipes/ownList",
+        method: "GET",
+      }),
+      providesTags: ["recipes"],
+    }),
+    searchRecipesByIngredients: builder.query({
+      query: (ingredients) => {
+        const params = new URLSearchParams();
+        ingredients.forEach((ingredient) => params.append("ingredients", ingredient));
+        return `/recipes/search?${params.toString()}`;
+      },
+      providesTags: ["recipes"],
+    }),
     addRecipe: builder.mutation({
       query: (recipeData) => ({
         url: "/recipes/create",
@@ -54,6 +69,13 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
         "recipes", // Optionally invalidate the list of recipes
       ],
     }),
+    publishDraftRecipe: builder.mutation({
+      query: ({ recipeId }) => ({
+        url: `/recipes/${recipeId}`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["recipes"],
+    }),
     commentRecipe: builder.mutation({
       query: (args) => {
         const { recipeId, comment } = args;
@@ -67,12 +89,12 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     deleteCommentRecipe: builder.mutation({
       query: (args) => {
-        const { _id, commentId } = args;
+        const { recipeId, commentId } = args;
         console.log(
-          "deleting comment id: " + commentId + ", for recipe: " + _id
+          "deleting comment id: " + commentId + ", for recipe: " + recipeId
         );
         return {
-          url: `/recipes/comment/${_id}/${commentId}`,
+          url: `/recipes/comment/${recipeId}/${commentId}`,
           method: "DELETE",
         };
       },
@@ -93,10 +115,13 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
 export const {
   useGetRecipeQuery,
   useGetRecipesQuery,
+  useGetMyRecipesQuery,
+  useSearchRecipesByIngredientsQuery,
   useAddRecipeMutation,
   useUpdateRecipeMutation,
   useRateRecipeMutation,
   useDeleteRecipeMutation,
+  usePublishDraftRecipeMutation,
   useCommentRecipeMutation,
   useDeleteCommentRecipeMutation,
   useToggleFavoriteMutation,

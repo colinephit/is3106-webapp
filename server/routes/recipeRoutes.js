@@ -1,17 +1,18 @@
 const express = require("express");
 const {
-  getAllRecipes,
-  getRecipe,
-  addRecipe,
-  updateRecipe,
-  rateRecipe,
-  deleteRecipe,
-  addComment,
-  deleteComment,
-  toggleFavoriteRecipe,
-  getTopRecipes,
-  searchRecipesByIngredients,
-  getOwnRecipes,
+    getAllRecipes,
+    getRecipe,
+    addRecipe,
+    updateRecipe,
+    publishRecipe,
+    rateRecipe,
+    deleteRecipe,
+    addComment,
+    deleteComment,
+    toggleFavoriteRecipe,
+    getTopRecipes,
+    searchRecipesByIngredients,
+    getOwnRecipes,
 } = require("../controllers/recipeController");
 const { createReport } = require("../controllers/reportController");
 const ROLES_LIST = require("../config/rolesList");
@@ -23,6 +24,9 @@ const router = express.Router();
 // router.route("/list").get(getAllRecipes);
 
 router.route("/list").post(getAllRecipes);
+
+// to search for recipes using selected ingredients
+router.route("/search").get(searchRecipesByIngredients);
 
 router
   .route("/ownList")
@@ -43,19 +47,23 @@ router
   );
 
 router
-  .route("/:id")
-  .get((req, res) => {
-    console.log("Recipe ID received:", req.params.id);
-    getRecipe(req, res);
-  })
-  .put(
-    [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
-    updateRecipe
-  )
-  .delete(
-    [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
-    deleteRecipe
-  );
+    .route("/:id")
+    .get((req, res) => {
+        console.log("Recipe ID received:", req.params.id);
+        getRecipe(req, res);
+    })
+    .put(
+        [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
+        updateRecipe
+    )
+    .patch( 
+        [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
+        publishRecipe 
+    )
+    .delete(
+        [verifyJwt, verifyRoles(ROLES_LIST.Admin, ROLES_LIST.BasicUser)],
+        deleteRecipe
+    );
 
 router
   .route("/comment/:id")
@@ -79,9 +87,6 @@ router
     [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
     toggleFavoriteRecipe
   );
-
-// to search for recipes using selected ingredients
-router.post("/search", [verifyJwt], searchRecipesByIngredients);
 
 // route to create a new report for a specific recipe
 router.post(

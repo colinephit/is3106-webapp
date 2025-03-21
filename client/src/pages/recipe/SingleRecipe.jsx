@@ -20,6 +20,8 @@ import {
   useDeleteCommentRecipeMutation,
   useToggleFavoriteMutation,
   useDeleteRecipeMutation,
+  usePublishDraftRecipeMutation,
+  
 } from "../../features/recipe/recipeApiSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Rating, IconButton, Menu, MenuItem } from "@mui/material";
@@ -47,6 +49,8 @@ const SingleRecipe = () => {
   const [deleteComment] = useDeleteCommentRecipeMutation();
   const [toggleFavorite] = useToggleFavoriteMutation();
   const [deleteRecipe] = useDeleteRecipeMutation();
+  const [publishDraftRecipe, { isLoading: isPublishing }] =
+    usePublishDraftRecipeMutation();
 
   const [formDetails, setFormDetails] = useState({
     name: user?.name || "",
@@ -162,6 +166,24 @@ const SingleRecipe = () => {
     setAnchorEl(null);
   };
 
+  const handlePublish = async () => {
+    try {
+      console.log("handlePublish function called!");
+      await toast.promise(
+        publishDraftRecipe({ recipeId: id }).unwrap(), // Use this
+        {
+          pending: "Please wait...",
+          success: "Recipe published",
+          error: "Could not publish recipe",
+        }
+      );
+      rest.refetch();
+    } catch (error) {
+      toast.error(error.data);
+      console.error(error);
+    }
+  };
+
   return (
     <>
       {rest?.isLoading ? (
@@ -179,47 +201,77 @@ const SingleRecipe = () => {
             </div>
             {/* Recipe details */}
             <div className="basis-2/3 flex flex-col gap-2">
-              <div className="flex justify-between">
+              {/* Title and Badge */}
+              <div className="flex justify-between items-center">
                 <h2 className="font-bold text-xl md:text-3xl">
                   {data?.recipeName}
                 </h2>
-                {data?.author?._id === user?.userId && (
-                  <>
-                    <IconButton
-                      aria-label="more"
-                      id="long-button"
-                      aria-controls={open ? "long-menu" : undefined}
-                      aria-expanded={open ? "true" : undefined}
-                      aria-haspopup="true"
-                      size="small"
-                      onClick={handleMenu}
-                    >
-                      <MoreVert />
-                    </IconButton>
-                    <Menu
-                      id="long-menu"
-                      MenuListProps={{
-                        "aria-labelledby": "long-button",
-                      }}
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleMenuClose}
-                    >
-                      <MenuItem>
-                        <Link to={`/recipe/edit/${id}`}>Edit</Link>
-                      </MenuItem>
-                      <MenuItem onClick={handleMenuDelete}>Delete</MenuItem>
-                    </Menu>
-                  </>
+                {data?.status && (
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                      data.status === "Published"
+                        ? "bg-green-200 text-green-800"
+                        : data.status === "Draft"
+                        ? "bg-yellow-200 text-yellow-800"
+                        : "bg-gray-200 text-gray-800" // Default color
+                    }`}
+                  >
+                    {data.status}
+                  </span>
                 )}
+                {data?.author?._id === user?.userId && (
+                <div className="flex items-center gap-2"> {/* New div to group button and menu */}
+                  {console.log("data?.author?._id:", data?.author?._id)}
+                  {console.log("user?.userId:", user?.userId)}
+                  {console.log("data?.status:", data?.status)}
+                  {data?.status === "Draft" && (
+                    <Button
+                      content={"Publish Recipe"}
+                      handleClick={handlePublish}
+                      loading={isPublishing}
+                      customCss={"rounded-lg gap-3 max-w-max"}
+                    />
+                  )}
+                  <IconButton
+                    aria-label="more"
+                    id="long-button"
+                    aria-controls={open ? "long-menu" : undefined}
+                    aria-expanded={open ? "true" : undefined}
+                    aria-haspopup="true"
+                    size="small"
+                    onClick={handleMenu}
+                  >
+                    <MoreVert />
+                  </IconButton>
+                  <Menu
+                    id="long-menu"
+                    MenuListProps={{
+                      "aria-labelledby": "long-button",
+                    }}
+                    anchorEl={anchorEl}
+                    open={open}
+                    onClose={handleMenuClose}
+                  >
+                    <MenuItem>
+                      <Link to={`/recipe/edit/${id}`}>Edit</Link>
+                    </MenuItem>
+                    <MenuItem onClick={handleMenuDelete}>Delete</MenuItem>
+                  </Menu>
+                </div>
+              )}
               </div>
+
+              {/* Author Name and Favorites/Share Buttons */}
               <div className="flex justify-between items-center">
-                <p className="flex gap-2 items-center font-semibold">
-                  <LuChefHat className="text-primary" />
-                  {data?.author?.firstName && data?.author?.lastName
-                    ? `${data.author.firstName}, ${data.author.lastName}`
-                    : "Author name not available"}
-                </p>
+    {/* Author Name */}
+    <p className="flex gap-2 items-center font-semibold">
+      <LuChefHat className="text-primary" />
+      {data?.author?.firstName && data?.author?.lastName
+        ? `${data.author.firstName}, ${data.author.lastName}`
+        : "Author name not available"}
+    </p>
+
+                {/* Favorites and Share Buttons */}
                 <div className="flex gap-2 p-2 bg-light rounded-l-lg">
                   {user?.favorites?.some((ele) => ele === id) ? (
                     <AiFillHeart

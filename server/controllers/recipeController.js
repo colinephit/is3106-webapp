@@ -94,11 +94,59 @@ const getRecipe = async (req, res, next) => {
       .lean();
 
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
-
+    
     res.status(200).send(recipe);
   } catch (error) {
     console.error("Error fetching recipe:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// to search for recipes based on user's selected ingredients in recipe page
+const searchRecipesByIngredients = async (req, res, next) => {
+  try {
+    let { ingredients } = req.query;
+
+    if (typeof ingredients === 'string') {
+      ingredients = ingredients.split(',');
+    }
+
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      const allRecipes = await Recipe.find({ status: "Published" }).populate('ingredients').populate('categories').populate('author');
+      return res.status(200).json(allRecipes);
+    }
+
+    const recipes = await Recipe.aggregate([
+      {
+        $lookup: {
+          from: "ingredients",
+          localField: "ingredients",
+          foreignField: "_id",
+          as: "ingredientDetails",
+        },
+      },
+      {
+        $match: {
+          "ingredientDetails.ingredientName": {
+            $in: ingredients.map(ingredient => new RegExp(ingredient, "i")),
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          recipeName: 1,
+          matchIngredients: 1,
+          description: 1, 
+          image: 1,
+        },
+      },
+    ]);
+
+    console.log("Recipes found:", recipes);
+    res.status(200).json(recipes);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -173,14 +221,10 @@ const updateRecipe = async (req, res, next) => {
       categories,
       instructions,
       additionalInformation,
-      status,
+      // status,
     } = req.body;
 
-    //logging
-    console.log("Request Body:", req.body);
-    console.log("Ingredients:", ingredients);
-    console.log("Categories:", categories);
-    console.log("recipeName:", recipeName);
+    //console.log("Request Body:", req.body);
 
     if (
       !recipeName ||
@@ -190,21 +234,20 @@ const updateRecipe = async (req, res, next) => {
       !cookingTime ||
       !ingredients.length ||
       !categories.length ||
-      !instructions.length ||
-      !status
+      !instructions.length 
+      // || !status
     ) {
       return res.status(422).json({ message: "Insufficient data" });
     }
 
     const foundRecipe = await Recipe.findById(req.params.id);
 
-    //logging
-    console.log("foundRecipe", foundRecipe);
+    //console.log("foundRecipe", foundRecipe);
 
     if (!foundRecipe)
       return res.status(404).json({ message: "Recipe not found" });
 
-    if (foundRecipe.author !== req.user)
+    if (foundRecipe.author.toString() !== req.user.toString())
       return res.status(401).json({ message: "Unauthorized" });
 
     foundRecipe.recipeName = recipeName;
@@ -216,12 +259,34 @@ const updateRecipe = async (req, res, next) => {
     foundRecipe.instructions = instructions;
     foundRecipe.categories = categories;
     foundRecipe.additionalInformation = additionalInformation;
-    foundRecipe.status = status;
+    //foundRecipe.status = status;
 
     const updatedRecipe = await foundRecipe.save();
     res.status(201).json(updatedRecipe);
   } catch (error) {
+    console.error("Error in updateRecipe:", error);
     next(error);
+  }
+};
+
+const publishRecipe = async (req, res, next) => {
+  try {
+    const { id } = req.params; 
+
+    // Update the recipe's status to "Published"
+    const updatedRecipe = await Recipe.findByIdAndUpdate(
+      id,
+      { status: "Published" },
+      { new: true } 
+    );
+
+    if (!updatedRecipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    res.status(200).json(updatedRecipe); 
+  } catch (error) {
+    next(error); 
   }
 };
 
@@ -259,17 +324,19 @@ const rateRecipe = async (req, res, next) => {
 const deleteRecipe = async (req, res, next) => {
   try {
     const foundRecipe = await Recipe.findById(req.params.id);
-    console.log("found recipe is", foundRecipe);
-    if (!foundRecipe)
-      return res.status(404).json({ message: "Recipe not found" });
 
-    if (foundRecipe.author.toString() !== req.user.userId) {
+    if (!foundRecipe) {
+      return res.status(404).json({ message: "Recipe not found" });
+    }
+
+    if (foundRecipe.author.toString() !== req.user.toString()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    await foundRecipe.deleteOne({ _id: req.params.id });
-    res.sendStatus(204);
+    await Recipe.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Recipe deleted" });
   } catch (error) {
+    console.error("Error deleting recipe:", error);
     next(error);
   }
 };
@@ -303,6 +370,7 @@ const deleteComment = async (req, res, next) => {
     const { recipeId, commentId } = req.params;
 
     const recipe = await Recipe.findById(recipeId);
+
     if (!recipe) {
       return res.status(404).json({ message: "Recipe not found." });
     }
@@ -310,6 +378,7 @@ const deleteComment = async (req, res, next) => {
     const commentIndex = recipe.comments.findIndex((comment) =>
       comment._id.equals(commentId)
     );
+
     if (commentIndex === -1) {
       return res.status(404).json({ message: "Comment not found." });
     }
@@ -319,6 +388,7 @@ const deleteComment = async (req, res, next) => {
 
     res.status(200).json({ message: "Comment deleted successfully." });
   } catch (error) {
+    console.error("Error deleting comment:", error);
     next(error);
   }
 };
@@ -367,66 +437,18 @@ const toggleFavoriteRecipe = async (req, res, next) => {
   }
 };
 
-// to search for recipes based on user's selected ingredients in home page
-const searchRecipesByIngredients = async (req, res) => {
-  try {
-    let { ingredients } = req.body; // expects an array of ingredient IDs that user selected
-
-    if (
-      !ingredients ||
-      !Array.isArray(ingredients) ||
-      ingredients.length === 0
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Please select at least one ingredient" });
-    }
-
-    // find all recipes that contain at least some of the selected ingredients
-    const recipes = await Recipe.find({ ingredients: { $in: ingredients } })
-      .populate("ingredients")
-      .populate("author", "firstName lastName")
-      .populate("ratings", "rating")
-      .sort({ createdAt: -1 });
-
-    // filter recipes based on missing ingredient count
-    const filteredRecipes = recipes.filter((recipe) => {
-      const recipeIngredientIds = recipe.ingredients.map((thing) =>
-        thing._id.toString()
-      );
-      const missingCount = ingredients.filter(
-        (thingId) => !recipeIngredientIds.includes(thingId)
-      ).length;
-      return missingCount <= 5; // we should allow up to 5 missing ingredients, else cant be made?
-    });
-
-    if (filteredRecipes.length === 0) {
-      return res.status(400).json({
-        message:
-          "Too many missing ingredients. Try removing some ingredients from your search.",
-      });
-    }
-
-    res.status(200).json(filteredRecipes);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error searching recipes",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   getAllRecipes,
   getRecipe,
+  searchRecipesByIngredients,
   addRecipe,
   updateRecipe,
+  publishRecipe,
   rateRecipe,
   deleteRecipe,
   addComment,
   deleteComment,
   toggleFavoriteRecipe,
   getTopRecipes,
-  searchRecipesByIngredients,
   getOwnRecipes,
 };

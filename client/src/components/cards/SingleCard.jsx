@@ -20,12 +20,17 @@ const SingleCard = ({ singleData, type }) => {
   const [toggleFavorite] = useToggleFavoriteMutation();
 
   const formattedDate = dateFormat(singleData?.createdAt);
-  const sumOfRatings = singleData?.ratings.reduce(
-    (sum, item) => sum + item.rating,
-    0
-  );
-  const averageRating =
-    sumOfRatings === 0 ? 0 : sumOfRatings / singleData?.ratings.length;
+  console.log(singleData);
+  console.log("Description:", singleData?.description);
+  let averageRating = 0; // Default to 0
+
+  if (Array.isArray(singleData?.ratings) && singleData.ratings.length > 0) {
+    const sumOfRatings = singleData.ratings.reduce(
+      (sum, item) => sum + item.rating,
+      0
+    );
+    averageRating = sumOfRatings / singleData.ratings.length;
+  }
 
   const handleToggleFavorite = async () => {
     try {
@@ -83,7 +88,22 @@ const SingleCard = ({ singleData, type }) => {
           />
           {/* Overlay */}
           <div className="absolute bottom-0 left-0 w-full backdrop-blur-sm bg-[#fffcf5d3] p-4 flex justify-between">
+            {/* Author */}
             <h4 className="font-bold">By: {singleData?.author?.firstName}</h4>
+            {/* Status Badge */}
+            {singleData?.status && (
+              <span
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                  singleData.status === "Published"
+                    ? "bg-green-200 text-green-800"
+                    : singleData.status === "Draft"
+                    ? "bg-yellow-200 text-yellow-800"
+                    : "bg-gray-200 text-gray-800" // Default color
+                }`}
+              >
+                {singleData.status}
+              </span>
+            )}
             {/* no date in schema? <span className="text-sm">{formattedDate}</span> */} 
           </div>
         </div>

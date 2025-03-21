@@ -111,7 +111,7 @@ const Avatar = () => {
           <Box>
             <Divider />
             <MenuItem>
-              <Link to="/recipes/add" className="flex items-center">
+              <Link to="/recipe/add" className="flex items-center">
                 <ListItemIcon>
                   <RestaurantMenu fontSize="small" />
                 </ListItemIcon>
