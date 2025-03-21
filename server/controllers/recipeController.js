@@ -94,11 +94,59 @@ const getRecipe = async (req, res, next) => {
       .lean();
 
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
-
+    
     res.status(200).send(recipe);
   } catch (error) {
     console.error("Error fetching recipe:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+// to search for recipes based on user's selected ingredients in recipe page
+const searchRecipesByIngredients = async (req, res, next) => {
+  try {
+    let { ingredients } = req.query;
+
+    if (typeof ingredients === 'string') {
+      ingredients = ingredients.split(',');
+    }
+
+    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
+      const allRecipes = await Recipe.find({ status: "Published" }).populate('ingredients').populate('categories').populate('author');
+      return res.status(200).json(allRecipes);
+    }
+
+    const recipes = await Recipe.aggregate([
+      {
+        $lookup: {
+          from: "ingredients",
+          localField: "ingredients",
+          foreignField: "_id",
+          as: "ingredientDetails",
+        },
+      },
+      {
+        $match: {
+          "ingredientDetails.ingredientName": {
+            $in: ingredients.map(ingredient => new RegExp(ingredient, "i")),
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          recipeName: 1,
+          matchIngredients: 1,
+          description: 1, 
+          image: 1,
+        },
+      },
+    ]);
+
+    console.log("Recipes found:", recipes);
+    res.status(200).json(recipes);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -316,32 +364,6 @@ const addComment = async (req, res, next) => {
     next(error);
   }
 };
-/*
-const deleteComment = async (req, res, next) => {
-  try {
-    const { recipeId, commentId } = req.params;
-
-    const recipe = await Recipe.findById(recipeId);
-    if (!recipe) {
-      return res.status(404).json({ message: "Recipe not found." });
-    }
-
-    const commentIndex = recipe.comments.findIndex((comment) =>
-      comment._id.equals(commentId)
-    );
-    if (commentIndex === -1) {
-      return res.status(404).json({ message: "Comment not found." });
-    }
-
-    recipe.comments.splice(commentIndex, 1);
-    await recipe.save();
-
-    res.status(200).json({ message: "Comment deleted successfully." });
-  } catch (error) {
-    next(error);
-  }
-};
-*/
 
 const deleteComment = async (req, res, next) => {
   try {
@@ -415,58 +437,10 @@ const toggleFavoriteRecipe = async (req, res, next) => {
   }
 };
 
-// to search for recipes based on user's selected ingredients in home page
-const searchRecipesByIngredients = async (req, res) => {
-  try {
-    let { ingredients } = req.body; // expects an array of ingredient IDs that user selected
-
-    if (
-      !ingredients ||
-      !Array.isArray(ingredients) ||
-      ingredients.length === 0
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Please select at least one ingredient" });
-    }
-
-    // find all recipes that contain at least some of the selected ingredients
-    const recipes = await Recipe.find({ ingredients: { $in: ingredients } })
-      .populate("ingredients")
-      .populate("author", "firstName lastName")
-      .populate("ratings", "rating")
-      .sort({ createdAt: -1 });
-
-    // filter recipes based on missing ingredient count
-    const filteredRecipes = recipes.filter((recipe) => {
-      const recipeIngredientIds = recipe.ingredients.map((thing) =>
-        thing._id.toString()
-      );
-      const missingCount = ingredients.filter(
-        (thingId) => !recipeIngredientIds.includes(thingId)
-      ).length;
-      return missingCount <= 5; // we should allow up to 5 missing ingredients, else cant be made?
-    });
-
-    if (filteredRecipes.length === 0) {
-      return res.status(400).json({
-        message:
-          "Too many missing ingredients. Try removing some ingredients from your search.",
-      });
-    }
-
-    res.status(200).json(filteredRecipes);
-  } catch (error) {
-    res.status(500).json({
-      message: "Error searching recipes",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   getAllRecipes,
   getRecipe,
+  searchRecipesByIngredients,
   addRecipe,
   updateRecipe,
   publishRecipe,
@@ -476,6 +450,5 @@ module.exports = {
   deleteComment,
   toggleFavoriteRecipe,
   getTopRecipes,
-  searchRecipesByIngredients,
   getOwnRecipes,
 };

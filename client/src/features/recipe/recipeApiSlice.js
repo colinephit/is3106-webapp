@@ -21,6 +21,14 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags: ["recipes"],
         }),
+        searchRecipesByIngredients: builder.query({
+            query: (ingredients) => {
+              const params = new URLSearchParams();
+              ingredients.forEach((ingredient) => params.append("ingredients", ingredient));
+              return `/recipes/search?${params.toString()}`; 
+            },
+            providesTags: ["recipes"],
+        }),
         addRecipe: builder.mutation({
             query: (recipeData) => ({
                 url: "/recipes/create",
@@ -105,6 +113,7 @@ export const {
     useGetRecipeQuery,
     useGetRecipesQuery,
     useGetMyRecipesQuery,
+    useSearchRecipesByIngredientsQuery,
     useAddRecipeMutation,
     useUpdateRecipeMutation,
     useRateRecipeMutation,

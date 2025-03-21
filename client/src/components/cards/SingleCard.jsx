@@ -20,12 +20,17 @@ const SingleCard = ({ singleData, type }) => {
   const [toggleFavorite] = useToggleFavoriteMutation();
 
   const formattedDate = dateFormat(singleData?.createdAt);
-  const sumOfRatings = singleData?.ratings.reduce(
-    (sum, item) => sum + item.rating,
-    0
-  );
-  const averageRating =
-    sumOfRatings === 0 ? 0 : sumOfRatings / singleData?.ratings.length;
+  console.log(singleData);
+  console.log("Description:", singleData?.description);
+  let averageRating = 0; // Default to 0
+
+  if (Array.isArray(singleData?.ratings) && singleData.ratings.length > 0) {
+    const sumOfRatings = singleData.ratings.reduce(
+      (sum, item) => sum + item.rating,
+      0
+    );
+    averageRating = sumOfRatings / singleData.ratings.length;
+  }
 
   const handleToggleFavorite = async () => {
     try {

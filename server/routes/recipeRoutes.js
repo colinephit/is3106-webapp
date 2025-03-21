@@ -25,6 +25,9 @@ const router = express.Router();
 
 router.route("/list").post(getAllRecipes);
 
+// to search for recipes using selected ingredients
+router.route("/search").get(searchRecipesByIngredients);
+
 router
     .route("/ownList")
     .get(
@@ -84,9 +87,6 @@ router
         [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
         toggleFavoriteRecipe
     );
-
-// to search for recipes using selected ingredients
-router.post("/search", [verifyJwt], searchRecipesByIngredients);
 
 // route to create a new report for a specific recipe
 router.post(
