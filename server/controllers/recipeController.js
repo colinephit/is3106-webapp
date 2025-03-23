@@ -204,8 +204,9 @@ const updateRecipe = async (req, res, next) => {
     if (!foundRecipe)
       return res.status(404).json({ message: "Recipe not found" });
 
-    if (foundRecipe.author !== req.user)
-      return res.status(401).json({ message: "Unauthorized" });
+    // commented out because admin can edit the status of the recipe
+    // if (foundRecipe.author !== req.user)
+    //   return res.status(401).json({ message: "Unauthorized" });
 
     foundRecipe.recipeName = recipeName;
     foundRecipe.description = description;

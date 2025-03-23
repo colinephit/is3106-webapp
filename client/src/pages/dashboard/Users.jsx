@@ -33,8 +33,8 @@ const Users = () => {
   const cols = [
     { field: "id", headerName: "ID", width: 100 },
     {
-      field: "firstName",
-      headerName: "First Name",
+      field: "name",
+      headerName: "Name",
       headerAlign: "center",
       align: "left",
       minWidth: 250,
@@ -57,7 +57,7 @@ const Users = () => {
       headerName: "Email",
       headerAlign: "center",
       align: "left",
-      minWidth: 280,
+      minWidth: 200,
     },
     {
       field: "roles",
@@ -86,7 +86,17 @@ const Users = () => {
     },
     {
       field: "isDisabled",
-      headerName: "Disabled",
+      headerName: "Status",
+      headerAlign: "center",
+      align: "center",
+      minWidth: 100,
+      renderCell: ({ row: { isDisabled, _id } }) => {
+        return <div>{isDisabled ? "Disabled" : "Active"}</div>;
+      },
+    },
+    {
+      field: "Action",
+      headerName: "Action",
       headerAlign: "center",
       align: "center",
       minWidth: 250,
@@ -100,7 +110,7 @@ const Users = () => {
             } text-light py-2`}
             onClick={() => handleDisable(_id)}
           >
-            {isDisabled ? "Disabled" : "Disable"}
+            {isDisabled ? "Enable" : "Disable"}
           </div>
         );
       },

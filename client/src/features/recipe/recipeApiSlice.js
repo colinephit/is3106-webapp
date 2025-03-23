@@ -14,6 +14,14 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["recipes"],
     }),
+    getAllRecipes: builder.query({
+      query: () => ({
+        url: "/recipes/list",
+        method: "POST",
+        body: { status: "ALL" },
+      }),
+      providesTags: ["recipes"],
+    }),
     addRecipe: builder.mutation({
       query: (recipeData) => ({
         url: "/recipes/create",
@@ -100,4 +108,5 @@ export const {
   useCommentRecipeMutation,
   useDeleteCommentRecipeMutation,
   useToggleFavoriteMutation,
+  useGetAllRecipesQuery,
 } = recipeApiSlice;
