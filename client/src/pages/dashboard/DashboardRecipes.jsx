@@ -4,15 +4,19 @@ import { setRecipes } from "../../features/recipe/recipeSlice";
 import { useDispatch } from "react-redux";
 import {
   useGetRecipesQuery,
+  useGetAllRecipesQuery,
   useDeleteRecipeMutation,
   useDeleteCommentRecipeMutation,
+  useUpdateRecipeMutation,
+  useGetRecipeQuery,
 } from "../../features/recipe/recipeApiSlice";
+import { useGetCategoryQuery } from "../../features/category/categoryApiSlice";
 import { Avatar as MuiAvatar, Rating } from "@mui/material";
 import { Modal, Button } from "@mui/material";
 import "./ModalStyles.css";
 
 const DashboardRecipes = () => {
-  const { data, isLoading } = useGetRecipesQuery();
+  const { data, isLoading } = useGetAllRecipesQuery();
   console.log(data);
   const dispatch = useDispatch();
   const updatedData = data?.map((item, index) => ({
@@ -47,11 +51,11 @@ const DashboardRecipes = () => {
   }, [isLoading]);
 
   const cols = [
-    { field: "id", headerName: "ID", width: 100 },
+    { field: "id", headerName: "ID", width: 50 },
     {
       field: "title",
       headerName: "Title",
-      width: 280,
+      width: 200,
       headerAlign: "center",
       align: "left",
       renderCell: ({ row: { recipeName } }) => {
@@ -80,11 +84,46 @@ const DashboardRecipes = () => {
       },
     },
     {
+      field: "category",
+      headerName: "Category",
+      width: 100,
+      headerAlign: "center",
+      align: "left",
+      renderCell: ({ row: { categories } }) => {
+        if (!categories || categories.length === 0) {
+          return <div>No Category</div>; // Or handle no category case
+        }
+
+        const categoryId = categories[0]; // Get the single category ID
+
+        const {
+          data: category,
+          isLoading,
+          isError,
+          error,
+        } = useGetCategoryQuery(categoryId);
+
+        if (isLoading) {
+          return <div>Loading...</div>;
+        }
+
+        if (isError) {
+          return <div>Error: {error.message || "Failed to load category"}</div>;
+        }
+
+        if (!category) {
+          return <div>Category Not Found</div>;
+        }
+
+        return <div>{category.categoryName}</div>;
+      },
+    },
+    {
       field: "author",
       headerName: "Author",
       headerAlign: "center",
       align: "left",
-      minWidth: 200,
+      width: 150,
       renderCell: ({ row: { author } }) => {
         return (
           <div className="flex gap-2 items-center">
@@ -102,7 +141,7 @@ const DashboardRecipes = () => {
     {
       field: "ratings",
       headerName: "Rating",
-      width: 250,
+      width: 180,
       headerAlign: "center",
       align: "center",
       renderCell: ({ row: { ratings } }) => {
@@ -115,7 +154,59 @@ const DashboardRecipes = () => {
         return <Rating value={averageRating} readOnly={true} size={"medium"} />;
       },
     },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 100,
+      headerAlign: "center",
+      align: "center",
+      renderCell: ({ row: { _id, status } }) => {
+        const [isEditing, setIsEditing] = useState(false);
+        const [localStatus, setLocalStatus] = useState(status);
+        const [updateRecipe] = useUpdateRecipeMutation();
+        const { data: recipeData } = useGetRecipeQuery(_id); //fetch recipe data.
 
+        const handleStatusChange = async (newStatus) => {
+          try {
+            if (!recipeData) return; //add check if data is loaded.
+            const updatedRecipe = {
+              ...recipeData,
+              status: newStatus,
+            };
+            console.log("updated recipe is", updatedRecipe);
+            await updateRecipe({ recipeId: _id, ...updatedRecipe }).unwrap(); //send the whole updated object.
+            setLocalStatus(newStatus);
+            setIsEditing(false);
+          } catch (error) {
+            console.error("Error updating recipe status:", error);
+          }
+        };
+
+        if (isEditing) {
+          return (
+            <select
+              value={localStatus}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              onBlur={() => setIsEditing(false)}
+              autoFocus
+            >
+              <option value="Published">Published</option>
+              <option value="Pending">Pending</option>
+              <option value="Draft">Draft</option>
+            </select>
+          );
+        } else {
+          return (
+            <div
+              onClick={() => setIsEditing(true)}
+              style={{ cursor: "pointer" }}
+            >
+              {localStatus}
+            </div>
+          );
+        }
+      },
+    },
     {
       field: "comments",
       headerName: "Comments",

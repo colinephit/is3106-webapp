@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { ComponentLoading, Table } from "../../components";
 import { setCategories } from "../../features/category/categorySlice";
 import { useDispatch } from "react-redux";
@@ -6,6 +6,8 @@ import {
   useGetCategoriesQuery,
   useAddCategoryMutation,
   useGetAllCategoriesQuery,
+  useDeleteCategoryMutation,
+  useUpdateCategoryMutation,
 } from "../../features/category/categoryApiSlice";
 import { Avatar as MuiAvatar } from "@mui/material";
 import dateFormat from "../../common/dateFormat";
@@ -19,7 +21,12 @@ const DashboardCategories = () => {
   }));
 
   const [addCategory] = useAddCategoryMutation();
+  const [deleteCategory] = useDeleteCategoryMutation();
   const [newCategory, setNewCategory] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [editValue, setEditValue] = useState("");
+  const [updateCategory] = useUpdateCategoryMutation();
+  const inputRef = useRef(null); // Create a ref
 
   const handleAddCategory = async (e) => {
     e.preventDefault();
@@ -35,6 +42,36 @@ const DashboardCategories = () => {
     }
   };
 
+  const handleDelete = (_id) => {
+    if (window.confirm("Are you sure you want to delete?")) {
+      deleteCategory(_id);
+      refetch();
+    }
+  };
+
+  const handleEdit = (_id, categoryName) => {
+    setEditId(_id);
+    setEditValue(categoryName);
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 0);
+  };
+
+  const handleSave = async (_id) => {
+    try {
+      await updateCategory({
+        categoryId: _id,
+        categoryName: editValue,
+      }).unwrap();
+      setEditId(null);
+      refetch();
+    } catch (error) {
+      console.error("Error updating category:", error);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading) {
       dispatch(setCategories(data));
@@ -47,9 +84,22 @@ const DashboardCategories = () => {
     {
       field: "categoryName",
       headerName: "Name",
-      width: 350,
+      width: 200,
       headerAlign: "center",
       align: "left",
+      renderCell: ({ row }) => {
+        return editId === row._id ? (
+          <input
+            ref={inputRef}
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            className="p-1 border rounded w-full"
+          />
+        ) : (
+          <p>{row.categoryName}</p>
+        );
+      },
     },
     {
       field: "createdAt",
@@ -62,23 +112,42 @@ const DashboardCategories = () => {
         return <p>{formattedDate}</p>;
       },
     },
-    // {
-    //   headerName: "Actions",
-    //   headerAlign: "center",
-    //   align: "center",
-    //   minWidth: 250,
-    //   renderCell: ({ row: { _id } }) => {
-    //     return (
-    //       <div
-    //         className="rounded shadow-md w-[40%] text-center cursor-pointer  bg-primaryLight
-    //         hover:bg-primary text-light py-2"
-    //         onClick={() => handleDelete(_id)}
-    //       >
-    //         Delete
-    //       </div>
-    //     );
-    //   },
-    // },
+    {
+      headerName: "Actions",
+      headerAlign: "center",
+      align: "center",
+      minWidth: 250,
+      renderCell: ({ row }) => {
+        return (
+          <div className="flex justify-center w-full gap-4">
+            {editId === row._id ? (
+              <div
+                className="rounded shadow-md w-24 text-center cursor-pointer bg-green-500
+                hover:bg-green-700 text-light py-2"
+                onClick={() => handleSave(row._id)}
+              >
+                Save
+              </div>
+            ) : (
+              <div
+                className="rounded shadow-md w-24 text-center cursor-pointer bg-primaryLight
+                hover:bg-primary text-light py-2"
+                onClick={() => handleEdit(row._id, row.categoryName)}
+              >
+                Edit
+              </div>
+            )}
+            <div
+              className="rounded shadow-md w-24 text-center cursor-pointer bg-red-500
+              hover:bg-red-700 text-light py-2"
+              onClick={() => handleDelete(row._id)}
+            >
+              Delete
+            </div>
+          </div>
+        );
+      },
+    },
   ];
 
   return (

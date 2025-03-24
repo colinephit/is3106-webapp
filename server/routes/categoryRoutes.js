@@ -4,6 +4,8 @@ const {
   addCategory,
   editCategory,
   searchCategories,
+  deleteCategory,
+  getCategory,
 } = require("../controllers/categoryController");
 const verifyJwt = require("../middleware/verifyJwt");
 const verifyRoles = require("../middleware/verifyRoles");
@@ -28,4 +30,8 @@ router.put(
   editCategory
 );
 
+router
+  .route("/:id")
+  .get([verifyJwt, verifyRoles(ROLES_LIST.Admin)], getCategory)
+  .delete([verifyJwt, verifyRoles(ROLES_LIST.Admin)], deleteCategory);
 module.exports = router;

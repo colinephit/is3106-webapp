@@ -94,7 +94,7 @@ const getRecipe = async (req, res, next) => {
       .lean();
 
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
-    
+
     res.status(200).send(recipe);
   } catch (error) {
     console.error("Error fetching recipe:", error);
@@ -107,12 +107,19 @@ const searchRecipesByIngredients = async (req, res, next) => {
   try {
     let { ingredients } = req.query;
 
-    if (typeof ingredients === 'string') {
-      ingredients = ingredients.split(',');
+    if (typeof ingredients === "string") {
+      ingredients = ingredients.split(",");
     }
 
-    if (!ingredients || !Array.isArray(ingredients) || ingredients.length === 0) {
-      const allRecipes = await Recipe.find({ status: "Published" }).populate('ingredients').populate('categories').populate('author');
+    if (
+      !ingredients ||
+      !Array.isArray(ingredients) ||
+      ingredients.length === 0
+    ) {
+      const allRecipes = await Recipe.find({ status: "Published" })
+        .populate("ingredients")
+        .populate("categories")
+        .populate("author");
       return res.status(200).json(allRecipes);
     }
 
@@ -128,7 +135,7 @@ const searchRecipesByIngredients = async (req, res, next) => {
       {
         $match: {
           "ingredientDetails.ingredientName": {
-            $in: ingredients.map(ingredient => new RegExp(ingredient, "i")),
+            $in: ingredients.map((ingredient) => new RegExp(ingredient, "i")),
           },
         },
       },
@@ -137,7 +144,7 @@ const searchRecipesByIngredients = async (req, res, next) => {
           _id: 1,
           recipeName: 1,
           matchIngredients: 1,
-          description: 1, 
+          description: 1,
           image: 1,
         },
       },
@@ -234,7 +241,7 @@ const updateRecipe = async (req, res, next) => {
       !cookingTime ||
       !ingredients.length ||
       !categories.length ||
-      !instructions.length 
+      !instructions.length
       // || !status
     ) {
       return res.status(422).json({ message: "Insufficient data" });
@@ -247,8 +254,9 @@ const updateRecipe = async (req, res, next) => {
     if (!foundRecipe)
       return res.status(404).json({ message: "Recipe not found" });
 
-    if (foundRecipe.author.toString() !== req.user.toString())
-      return res.status(401).json({ message: "Unauthorized" });
+    // commented out because admin can edit the status of the recipe
+    // if (foundRecipe.author !== req.user)
+    //   return res.status(401).json({ message: "Unauthorized" });
 
     foundRecipe.recipeName = recipeName;
     foundRecipe.description = description;
@@ -271,22 +279,22 @@ const updateRecipe = async (req, res, next) => {
 
 const publishRecipe = async (req, res, next) => {
   try {
-    const { id } = req.params; 
+    const { id } = req.params;
 
     // Update the recipe's status to "Published"
     const updatedRecipe = await Recipe.findByIdAndUpdate(
       id,
       { status: "Published" },
-      { new: true } 
+      { new: true }
     );
 
     if (!updatedRecipe) {
       return res.status(404).json({ message: "Recipe not found" });
     }
 
-    res.status(200).json(updatedRecipe); 
+    res.status(200).json(updatedRecipe);
   } catch (error) {
-    next(error); 
+    next(error);
   }
 };
 

@@ -28,17 +28,14 @@ export const ingredientApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["ingredient"],
     }),
-    // updateIngredient: builder.mutation({
-    //   query: (args) => {
-    //     const { ingredientId, ...ingredientData } = args;
-    //     return {
-    //       url: `/ingredient/${recipeId}`,
-    //       method: "PUT",
-    //       body: { ...ingredientData },
-    //     };
-    //   },
-    //   invalidatesTags: ["ingredient"],
-    // }),
+    updateIngredient: builder.mutation({
+      query: ({ ingredientId, ingredientName }) => ({
+        url: `/ingredient/edit/${ingredientId}`,
+        method: "PUT",
+        body: { ingredientName },
+      }),
+      invalidatesTags: ["ingredient"],
+    }),
   }),
 });
 
@@ -47,4 +44,5 @@ export const {
   useAddIngredientMutation,
   useDeleteIngredientMutation,
   useGetAllIngredientsQuery,
+  useUpdateIngredientMutation,
 } = ingredientApiSlice;

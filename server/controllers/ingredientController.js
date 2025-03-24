@@ -35,7 +35,9 @@ exports.searchIngredients = async (req, res) => {
         // to find ingredients that match the search term (or return all if no search term)
         const ingredients = await Ingredient.find({
             ingredientName: regex,
-        }).sort({ ingredientName: 1 }); // to sort ingredients alphabetically
+        }).sort({
+            ingredientName: 1,
+        }); // to sort ingredients alphabetically
 
         res.status(200).json(ingredients);
     } catch (error) {
@@ -91,22 +93,31 @@ exports.editIngredient = async (req, res) => {
                 .json({ message: "Ingredient name is required" });
         }
 
+        const ingredient = await Ingredient.findById(req.params.id);
+        if (!ingredient) {
+            return res.status(404).json({ message: "Ingredient not found" });
+        }
+
         // Check if ingredient already exists (case insensitive)
-        const existingIngredient = await Ingredient.findOne({
+        let duplicateIngredient = await Ingredient.findOne({
             ingredientName: { $regex: new RegExp(`^${ingredientName}$`, "i") },
         });
-        if (existingIngredient._id.toString() !== req.params.id) {
+
+        if (
+            duplicateIngredient &&
+            duplicateIngredient._id.toString() !== req.params.id
+        ) {
             return res
                 .status(400)
                 .json({ message: "Ingredient already exists" });
         }
 
-        existingIngredient.ingredientName = ingredientName;
-        await existingIngredient.save();
+        ingredient.ingredientName = ingredientName;
+        await ingredient.save();
 
         res.status(201).json({
             message: "Ingredient edited successfully",
-            ingredient: existingIngredient,
+            ingredient: ingredient,
         });
     } catch (error) {
         res.status(500).json({
