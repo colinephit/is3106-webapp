@@ -104,7 +104,7 @@ const SingleCard = ({ singleData, type }) => {
                 {singleData.status}
               </span>
             )}
-            {/* no date in schema? <span className="text-sm">{formattedDate}</span> */} 
+            {/* no date in schema? <span className="text-sm">{formattedDate}</span> */}
           </div>
         </div>
         {/* Card Bottom details */}

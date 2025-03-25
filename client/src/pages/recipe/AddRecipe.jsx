@@ -195,7 +195,7 @@ const handleAddCategoryClick = (cat) => {
 
     console.log(formDetails);
 
-    if (!formDetails.image) 
+    if (!formDetails.image)
       return toast.error("Upload recipe image");
     if (!formDetails.ingredients.length)
       return toast.error("Ingredients cannot be empty");
@@ -464,7 +464,7 @@ const handleAddCategoryClick = (cat) => {
                 {formDetails.ingredients.map((ele, index) => (
                   <li
                     className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                    key={ele}
+                    key={ele._id}
                   >
                     {ele.name}
                     <RxCross2
@@ -526,20 +526,22 @@ const handleAddCategoryClick = (cat) => {
               </ul>
             </div>
           </div>
-          <button
-            type="button"
-            className="rounded px-4 py-1 max-w-max"
-            onClick={(e) => handleSubmit(e, "Draft")}
-          >
-            Save as Draft
-          </button>
-          <button
-            type="button"
-            className="rounded px-4 py-1 max-w-max"
-            onClick={(e) => handleSubmit(e, "Published")}
-          >
-            Publish Recipe
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="bg-primaryLight hover:bg-primary text-light  rounded px-4 py-1 max-w-max"
+              onClick={(e) => handleSubmit(e, "Draft")}
+            >
+              Save as Draft
+            </button>
+            <button
+              type="button"
+              className="bg-green-400 hover:bg-green-500 text-light rounded px-4 py-1 max-w-max "
+              onClick={(e) => handleSubmit(e, "Published")}
+            >
+              Publish Recipe
+            </button>
+          </div>
         </div>
         <hr className="block md:hidden mt-6" />
         {/* Upload recipe image */}

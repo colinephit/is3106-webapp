@@ -52,14 +52,14 @@ const EditRecipe = () => {
       useGetIngredientsQuery(ingredientQuery, {
         skip: ingredientQuery.length < 2, // Don't fetch if the query length is less than 2
       });
-  
+
     useEffect(() => {
       //console.log("Ingredients fetched:", ingredients);
       if (ingredientQuery.length < 2) {
         setIngredientSuggestions([]);
         return;
       }
-  
+
       if (ingredients) {
         setIngredientSuggestions(ingredients);
       }
@@ -71,14 +71,14 @@ const EditRecipe = () => {
       useGetCategoriesQuery(categoryQuery, {
         skip: categoryQuery.length < 2, // Don't fetch if the query length is less than 2
       });
-  
+
     useEffect(() => {
       //console.log("Categories fetched:", categories);
       if (categoryQuery.length < 2) {
         setCategorySuggestions([]);
         return;
       }
-  
+
       if (categories) {
         setCategorySuggestions(categories);
       }
@@ -141,7 +141,7 @@ const EditRecipe = () => {
     setIngredientQuery("");
     //console.log("Form Details after ingredient add:", formDetails);
   };
-  
+
   const handleAddCategoryClick = (cat) => {
     setFormDetails((prev) => ({
       ...prev,
