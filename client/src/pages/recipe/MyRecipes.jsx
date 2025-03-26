@@ -1,21 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import { AllCards, ComponentLoading } from "../../components";
 import { useGetMyRecipesQuery } from "../../features/recipe/recipeApiSlice";
-import useAuth from "../../hooks/useAuth";
 import useTitle from "../../hooks/useTitle";
 
-const index = () => {
+const MyRecipes = () => {
   const { data, isLoading } = useGetMyRecipesQuery();
-  const user = useAuth();
   useTitle("Recipen - My Recipes");
-  
-  const updatedData = data?.filter((obj) => {
-    console.log("obj.author._id type:", typeof obj.author._id);
-    console.log("user?.userId type:", typeof user?.userId);
-    console.log("obj.author._id:", obj.author._id);
-    console.log("user?.userId:", user?.userId);
-    return String(obj.author._id.toString()) === String(user?.userId.toString());
+
+  const [filter, setFilter] = useState({
+    search: "",
+    difficultyLevel: {
+      min: 1,
+      max: 5,
+    },
+    cookingTime: {
+      min: 1,
+      max: 999,
+    },
+    sort: "1",
+    ingredients: [],
+    category: "",
+    status: "Published",
   });
+
+  const handleFilterChange = (updatedFilter) => {
+    setFilter(updatedFilter);
+  };
 
   return (
     <>
@@ -28,11 +38,13 @@ const index = () => {
             "Welcome to your dedicated space where your imagination takes the lead."
           }
           type={"recipe"}
-          data={updatedData}
+          data={data}
+          filter={filter}
+          onFilterChange={handleFilterChange}
         />
       )}
     </>
   );
 };
 
-export default index;
+export default MyRecipes;
