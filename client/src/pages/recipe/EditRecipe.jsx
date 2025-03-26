@@ -145,7 +145,7 @@ const EditRecipe = () => {
   const handleAddCategoryClick = (cat) => {
     setFormDetails((prev) => ({
       ...prev,
-      categories: [...prev.categories, { _id: cat._id, categoryName: cat.categoryName }],
+      categories: [{ _id: cat._id, categoryName: cat.categoryName }],
     }));
     setCategoryQuery("");
     //console.log("Form Details after category add:", formDetails);

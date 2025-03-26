@@ -154,7 +154,7 @@ const handleAddIngredientClick = (ing) => {
 const handleAddCategoryClick = (cat) => {
   setFormDetails((prev) => ({
     ...prev,
-    categories: [...prev.categories, { _id: cat._id, name: cat.categoryName }],
+    categories: [{ _id: cat._id, name: cat.categoryName }],
   }));
   setCategoryQuery("");
 };
