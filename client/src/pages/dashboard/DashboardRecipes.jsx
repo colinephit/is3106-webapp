@@ -3,7 +3,6 @@ import { ComponentLoading, Table } from "../../components";
 import { setRecipes } from "../../features/recipe/recipeSlice";
 import { useDispatch } from "react-redux";
 import {
-  useGetRecipesQuery,
   useGetAllRecipesQuery,
   useDeleteRecipeMutation,
   useDeleteCommentRecipeMutation,
