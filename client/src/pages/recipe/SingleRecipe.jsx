@@ -21,7 +21,7 @@ import {
   useToggleFavoriteMutation,
   useDeleteRecipeMutation,
   usePublishDraftRecipeMutation,
-  
+
 } from "../../features/recipe/recipeApiSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Rating, IconButton, Menu, MenuItem } from "@mui/material";
@@ -36,7 +36,6 @@ const SingleRecipe = () => {
   useTitle("Recipen - Recipe");
 
   const user = useAuth();
-  const [rating, setRating] = useState(0);
   const { id } = useParams();
   const dispatch = useDispatch();
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -62,6 +61,11 @@ const SingleRecipe = () => {
     (sum, item) => sum + item.rating,
     0
   );
+
+  const [rating, setRating] = useState(
+    data?.ratings.length > 0 ? data?.ratings.find((d) => d.user == user.userId).rating : 0
+  );
+
   const averageRating =
     sumOfRatings === 0 ? 0 : sumOfRatings / data?.ratings.length;
 
