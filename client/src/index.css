@@ -72,3 +72,8 @@ input:invalid[focused="true"] {
 input:invalid[focused="true"] ~ span {
   @apply block;
 }
+
+.height-fit {
+  height: fit-content;
+  min-height: 300px;
+}
