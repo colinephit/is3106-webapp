@@ -6,7 +6,7 @@ import {
 } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { Logo } from "..";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -27,20 +27,40 @@ const Footer = () => {
           {/* Footer links */}
           <ul className="flex flex-col gap-2 font-semibold mx-8 items-center md:items-start">
             <li className="text-gray-700 text-sm text-bold mb-2">Product</li>
-            <motion.li whileHover={{ x: 5 }}>
-              <Link>Home</Link>
+            <motion.li
+              initial={{ x: 0 }}
+              animate={{ x: 0 }}
+              whileHover={{ x: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <NavLink to="/" className={({ isActive }) => isActive ? "font-bold text-black" : "text-gray-700"}>
+                Home
+              </NavLink>
             </motion.li>
-            <motion.li whileHover={{ x: 5 }}>
-              <Link>Blog</Link>
+            {/*<motion.li whileHover={{ x: 5 }}>
+              <Link>Blog</Link></motion.li>*/}
+            <motion.li
+              initial={{ x: 0 }}
+              animate={{ x: 0 }}
+              whileHover={{ x: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <NavLink to="/recipe" className={({ isActive }) => isActive ? "font-bold text-black" : "text-gray-700"}>
+                Recipes
+              </NavLink>
             </motion.li>
-            <motion.li whileHover={{ x: 5 }}>
-              <Link>Recipes</Link>
-            </motion.li>
-            <motion.li whileHover={{ x: 5 }}>
-              <Link>Contact</Link>
+            <motion.li
+              initial={{ x: 0 }}
+              animate={{ x: 0 }}
+              whileHover={{ x: 5 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <NavLink to="/contact" className={({ isActive }) => isActive ? "font-bold text-black" : "text-gray-700"}>
+                Contact
+              </NavLink>
             </motion.li>
           </ul>
-          <ul className="flex flex-col gap-2 font-semibold mx-8 items-center md:items-start">
+          {/*<ul className="flex flex-col gap-2 font-semibold mx-8 items-center md:items-start">
             <li className="text-gray-700 text-sm text-bold mb-2">Company</li>
             <motion.li whileHover={{ x: 5 }}>
               <Link>About</Link>
@@ -69,7 +89,7 @@ const Footer = () => {
             <motion.li whileHover={{ x: 5 }}>
               <Link>Cookies</Link>
             </motion.li>
-          </ul>
+          </ul>*/}
         </div>
       </div>
       {/* Footer bottom */}
@@ -77,7 +97,7 @@ const Footer = () => {
         <p className="text-sm text-center">
           &copy; {new Date().getFullYear()} Recipen. All rights reserved
         </p>
-        {/* Footer social links */}
+        {/* 
         <ul className="flex justify-center gap-6 text-xl">
           <motion.li
             className="border border-primary p-1 rounded-full hover:text-gray-500"
@@ -112,7 +132,7 @@ const Footer = () => {
               <AiFillLinkedin />
             </a>
           </motion.li>
-        </ul>
+        </ul>*/}
       </div>
     </footer>
   );
