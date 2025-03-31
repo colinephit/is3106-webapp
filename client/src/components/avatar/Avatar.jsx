@@ -24,6 +24,7 @@ import { useLogoutMutation } from "../../features/auth/authApiSlice";
 const Avatar = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const user = useAuth();
+  console.log("user: ", user);
 
   const [logout] = useLogoutMutation();
 
@@ -58,7 +59,7 @@ const Avatar = () => {
         >
           <MuiAvatar
             alt={user?.name}
-            src={user?.profilePicture}
+            src={user?.profileImage}
             sx={{ width: 34, height: 34 }}
           />
         </IconButton>
@@ -101,7 +102,7 @@ const Avatar = () => {
           <Link to={"/profile"} className="flex items-center">
             <MuiAvatar
               alt={user?.name}
-              src={user?.profilePicture}
+              src={user?.profileImage}
               sx={{ width: 32, height: 32, mr: 2 }}
             />{" "}
             Profile

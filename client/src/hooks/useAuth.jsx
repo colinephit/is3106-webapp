@@ -10,7 +10,7 @@ const useAuth = () => {
 
   if (token) {
     const decoded = jwtDecode(token);
-    const { userId, name, email, profilePicture, roles, favorites } =
+    const { userId, name, email, profileImage, roles, favorites } =
       decoded.UserInfo;
 
     isProUser = roles.includes("ProUser");
@@ -20,7 +20,7 @@ const useAuth = () => {
       userId,
       name,
       email,
-      profilePicture: profilePicture || profileBg,
+      profileImage: profileImage || profileBg,
       roles,
       favorites,
       isProUser,

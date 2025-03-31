@@ -212,7 +212,7 @@ const SingleRecipe = () => {
                 </h2>
                 {data?.status && (
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    className={`px-3 py-1 rounded-full text-sm font-semibold max-sm:px-2 max-sm:py-1 max-sm:text-xs ${
                       data.status === "Published"
                         ? "bg-green-200 text-green-800"
                         : data.status === "Draft"
@@ -233,7 +233,7 @@ const SingleRecipe = () => {
                       content={"Publish Recipe"}
                       handleClick={handlePublish}
                       loading={isPublishing}
-                      customCss={"rounded-lg gap-3 max-w-max"}
+                      customCss={"rounded-lg gap-3 max-w-max max-sm:gap-2 max-sm:text-sm max-sm:px-2 max-sm:py-1 max-lg:ml-4"}
                     />
                   )}
                   <IconButton

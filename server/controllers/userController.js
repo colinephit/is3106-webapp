@@ -18,7 +18,7 @@ const getUser = async (req, res, next) => {
   try {
     const user = await User.findOne(
       { _id: req.params.id, isDisabled: false },
-      "firstName lastName email profilePicture roleId contactNumber"
+      "firstName lastName email profileImage roleId contactNumber"
     );
 
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -150,6 +150,7 @@ const updateUser = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.log("error updating user: ", error);
     next(error);
   }
 };

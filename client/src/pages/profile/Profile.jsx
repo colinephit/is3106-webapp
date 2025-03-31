@@ -28,7 +28,7 @@ const Profile = () => {
     firstName: data?.firstName || "",
     lastName: data?.lastName || "",
     email: data?.email || "",
-    image: "",
+    image: data?.profileImage || "",
     password: "",
     contactNumber: "",
   });
@@ -40,7 +40,7 @@ const Profile = () => {
         lastName: data.lastName || "",
         email: data.email || "",
         contactNumber: data.contactNumber || "",
-        image: data.profilePicture || "",
+        image: data.profileImage|| "",
         password: "",
       });
     }
@@ -122,7 +122,7 @@ const Profile = () => {
             ) : (
               <MuiAvatar
                 alt={data?.firstName}
-                src={formDetails.image || data?.profilePicture}
+                src={formDetails.image || data?.profileImage}
                 sx={{ width: 80, height: 80 }}
                 className="border-2 border-primary"
               />
