@@ -52,10 +52,11 @@ const SingleRecipe = () => {
     usePublishDraftRecipeMutation();
 
   const [formDetails, setFormDetails] = useState({
-    name: user?.name || "",
+    name: user?.firstName || "",
     email: user?.email || "",
     message: "",
   });
+  console.log("form details: ", formDetails);
 
   const sumOfRatings = data?.ratings.reduce(
     (sum, item) => sum + item.rating,
@@ -63,7 +64,7 @@ const SingleRecipe = () => {
   );
 
   const [rating, setRating] = useState(
-    data?.ratings.length > 0 ? data?.ratings.find((d) => d.user == user.userId).rating : 0
+    data?.ratings?.find((d) => d.user == user.userId)?.rating || 0
   );
 
   const averageRating =
@@ -368,7 +369,7 @@ const SingleRecipe = () => {
           <hr />
           {/* Recipe comment form */}
           <div className="my-10 w-full sm:w-2/3 md:w-1/2 mx-auto flex flex-col gap-6">
-            <h3 className="font-bold text-2xl">Leave a Reply</h3>
+            <h3 className="font-bold text-2xl">Leave a Comment</h3>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <Input
                 type={"text"}
