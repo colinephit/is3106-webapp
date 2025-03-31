@@ -14,6 +14,14 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
             }),
             providesTags: ["recipes"],
         }),
+        getFavoriteRecipes: builder.query({
+            query: (filter) => ({
+                url: "/recipes/favoriteList",
+                method: "POST",
+                body: { ...filter },
+            }),
+            providesTags: ["recipes"],
+        }),
         getMyRecipes: builder.query({
             query: () => ({
                 url: "/recipes/ownList",
@@ -139,4 +147,5 @@ export const {
     useCommentRecipeMutation,
     useDeleteCommentRecipeMutation,
     useToggleFavoriteMutation,
+    useGetFavoriteRecipesQuery,
 } = recipeApiSlice;

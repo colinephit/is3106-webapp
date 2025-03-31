@@ -13,6 +13,7 @@ const {
     getTopRecipes,
     searchRecipesByIngredients,
     getOwnRecipes,
+    getFavouriteRecipes,
 } = require("../controllers/recipeController");
 const { createReport } = require("../controllers/reportController");
 const ROLES_LIST = require("../config/rolesList");
@@ -86,6 +87,13 @@ router
     .put(
         [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
         toggleFavoriteRecipe
+    );
+
+router
+    .route("/favoriteList")
+    .post(
+        [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
+        getFavouriteRecipes
     );
 
 // route to create a new report for a specific recipe

@@ -147,6 +147,161 @@ const getAllRecipes = async (req, res, next) => {
     }
 };
 
+const getFavouriteRecipes = async (req, res, next) => {
+    let {
+        search,
+        cookingTime,
+        difficultyLevel,
+        ingredients,
+        category,
+        sort,
+        status,
+    } = req.body;
+
+    const user = await User.findOne({ _id: req.user, isDisabled: false });
+    const recipeIds = user.favorites;
+
+    const matchConditions = [];
+
+    if (Array.isArray(recipeIds) && recipeIds.length > 0) {
+        matchConditions.push({
+            _id: {
+                $in: recipeIds.map((id) => new mongoose.Types.ObjectId(id)),
+            },
+        });
+    } else {
+        res.status(200).send([]);
+    }
+
+    if (!status || status.toUpperCase() !== "ALL") {
+        matchConditions.push({ status: status });
+    }
+
+    // Search by recipe name or description
+    if (search) {
+        matchConditions.push({
+            $or: [
+                { recipeName: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } },
+            ],
+        });
+    }
+
+    if (
+        difficultyLevel &&
+        difficultyLevel.min !== undefined &&
+        difficultyLevel.max !== undefined
+    ) {
+        matchConditions.push({
+            difficultyLevel: {
+                $gte: Math.max(1, Number(difficultyLevel.min)),
+                $lte: Math.min(5, Number(difficultyLevel.max)),
+            },
+        });
+    }
+
+    if (Array.isArray(ingredients) && ingredients.length > 0) {
+        matchConditions.push({
+            ingredients: {
+                $all: ingredients.map(
+                    (ingredient) => new mongoose.Types.ObjectId(ingredient._id)
+                ),
+            },
+        });
+    }
+
+    if (category) {
+        matchConditions.push({
+            categories: { $in: [new mongoose.Types.ObjectId(category)] },
+        });
+    }
+
+    let sortField = { createdAt: -1 };
+    switch (sort) {
+        case "1":
+            sortField = { createdAt: -1 };
+            break;
+        case "2":
+            sortField = { createdAt: 1 };
+            break;
+        case "3":
+            sortField = { avgRating: -1 };
+            break;
+        case "4":
+            sortField = { avgRating: 1 };
+            break;
+    }
+
+    const aggregationPipeline = [
+        ...(matchConditions.length
+            ? [{ $match: { $and: matchConditions } }]
+            : []),
+        {
+            $addFields: {
+                cookingTimeNum: { $toInt: "$cookingTime" },
+                avgRating: {
+                    $cond: {
+                        if: { $gt: [{ $size: "$ratings" }, 0] },
+                        then: { $avg: "$ratings.rating" },
+                        else: 0,
+                    },
+                },
+            },
+        },
+    ];
+
+    if (
+        cookingTime &&
+        cookingTime.min !== undefined &&
+        cookingTime.max !== undefined
+    ) {
+        aggregationPipeline.push({
+            $match: {
+                cookingTimeNum: {
+                    $gte: Number(cookingTime.min),
+                    $lte: Number(cookingTime.max),
+                },
+            },
+        });
+    }
+
+    aggregationPipeline.push({ $sort: sortField });
+
+    aggregationPipeline.push(
+        {
+            $lookup: {
+                from: "users",
+                localField: "author",
+                foreignField: "_id",
+                as: "author",
+            },
+        },
+        { $unwind: "$author" },
+        {
+            $project: {
+                recipeName: 1,
+                description: 1,
+                cookingTime: 1,
+                difficultyLevel: 1,
+                ingredients: 1,
+                categories: 1,
+                avgRating: 1,
+                createdAt: 1,
+                author: { firstName: 1, _id: 1, lastName: 1 },
+                ratings: { rating: 1 },
+                image: 1,
+            },
+        }
+    );
+
+    try {
+        const recipes = await Recipe.aggregate(aggregationPipeline);
+        res.status(200).send(recipes);
+    } catch (error) {
+        next(error);
+    }
+};
+
 const getOwnRecipes = async (req, res, next) => {
     try {
         const recipes = await Recipe.find({ author: req.user })
@@ -594,4 +749,5 @@ module.exports = {
     toggleFavoriteRecipe,
     getTopRecipes,
     getOwnRecipes,
+    getFavouriteRecipes,
 };
