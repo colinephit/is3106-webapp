@@ -17,9 +17,8 @@ const Footer = () => {
         <div className="basis-1/2 flex flex-col gap-6 items-center md:items-start text-center md:text-start">
           <Logo />
           <p>
-            Your culinary haven for sharing and savoring. Explore recipes,
-            restaurants, and engaging discussions. Join us now and indulge in
-            flavor-filled experiences!"
+            Your culinary haven for sharing and savoring. Explore and share your
+            own recipes. Join us now and indulge in flavor-filled experiences!"
           </p>
         </div>
         {/* Footer top right */}
@@ -33,7 +32,12 @@ const Footer = () => {
               whileHover={{ x: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <NavLink to="/" className={({ isActive }) => isActive ? "font-bold text-black" : "text-gray-700"}>
+              <NavLink
+                to="/"
+                className={({ isActive }) =>
+                  isActive ? "font-bold text-black" : "text-gray-700"
+                }
+              >
                 Home
               </NavLink>
             </motion.li>
@@ -45,7 +49,12 @@ const Footer = () => {
               whileHover={{ x: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
             >
-              <NavLink to="/recipe" className={({ isActive }) => isActive ? "font-bold text-black" : "text-gray-700"}>
+              <NavLink
+                to="/recipe"
+                className={({ isActive }) =>
+                  isActive ? "font-bold text-black" : "text-gray-700"
+                }
+              >
                 Recipes
               </NavLink>
             </motion.li>
@@ -54,11 +63,7 @@ const Footer = () => {
               animate={{ x: 0 }}
               whileHover={{ x: 5 }}
               transition={{ type: "spring", stiffness: 300 }}
-            >
-              <NavLink to="/contact" className={({ isActive }) => isActive ? "font-bold text-black" : "text-gray-700"}>
-                Contact
-              </NavLink>
-            </motion.li>
+            ></motion.li>
           </ul>
           {/*<ul className="flex flex-col gap-2 font-semibold mx-8 items-center md:items-start">
             <li className="text-gray-700 text-sm text-bold mb-2">Company</li>

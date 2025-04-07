@@ -50,24 +50,13 @@ const Header = () => {
                 Blogs
               </NavLink>
             </li> */}
-            <li>
-              <NavLink
-                to={"/contact"}
-                className="relative w-fit block after:block after:content-[''] after:absolute after:h-[2px] after:bg-primary after:w-full after:scale-x-0 after:hover:scale-x-100 after:transition after:duration-300 after:origin-center font-semibold text-gray-600"
-              >
-                Contact
-              </NavLink>
-            </li>
           </ul>
         </nav>
         {/* Sign in button */}
         {user ? (
           <Avatar />
         ) : (
-          <Link
-            to={"/auth/signin"}
-            className="hidden md:block"
-          >
+          <Link to={"/auth/signin"} className="hidden md:block">
             <Button
               content={"Sign In"}
               customCss={"max-w-max rounded-full"}

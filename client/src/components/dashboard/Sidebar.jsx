@@ -88,15 +88,6 @@ const index = ({ isCollapsed, setIsCollapsed }) => {
             {!isCollapsed && "Recipes"}
           </NavLink>
           <NavLink
-            to={"/dashboard/blogs"}
-            className={`rounded-lg hover:bg-gradient-to-r hover:from-primary hover:to-primaryLight p-2 flex gap-2 items-center text-gray-600 hover:text-light ${
-              isCollapsed && "justify-center"
-            }`}
-          >
-            <BsFileEarmarkText />
-            {!isCollapsed && "Blogs"}
-          </NavLink>
-          <NavLink
             to={"/dashboard/ingredients"}
             className={`rounded-lg hover:bg-gradient-to-r hover:from-primary hover:to-primaryLight p-2 flex gap-2 items-center text-gray-600 hover:text-light ${
               isCollapsed && "justify-center"
