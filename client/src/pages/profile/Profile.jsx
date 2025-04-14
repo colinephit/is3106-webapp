@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 const Profile = () => {
   const user = useAuth();
   const { data, isSuccess } = useGetUserQuery(user?.userId);
-  useTitle("Recipen - Profile");
+  useTitle("RecipeShare - Profile");
   const navigate = useNavigate();
 
   const [formDetails, setFormDetails] = useState({
@@ -40,7 +40,7 @@ const Profile = () => {
         lastName: data.lastName || "",
         email: data.email || "",
         contactNumber: data.contactNumber || "",
-        image: data.profileImage|| "",
+        image: data.profileImage || "",
         password: "",
       });
     }

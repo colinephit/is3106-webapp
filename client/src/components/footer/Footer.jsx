@@ -100,7 +100,7 @@ const Footer = () => {
       {/* Footer bottom */}
       <div className="box flex justify-center sm:justify-between flex-col sm:flex-row w-full gap-4">
         <p className="text-sm text-center">
-          &copy; {new Date().getFullYear()} Recipen. All rights reserved
+          &copy; {new Date().getFullYear()} RecipeShare. All rights reserved
         </p>
         {/* 
         <ul className="flex justify-center gap-6 text-xl">

@@ -5,7 +5,7 @@ import useTitle from "../../hooks/useTitle";
 
 const MyRecipes = () => {
   const { data, isLoading } = useGetMyRecipesQuery();
-  useTitle("Recipen - My Recipes");
+  useTitle("RecipeShare - My Recipes");
 
   const [filter, setFilter] = useState({
     search: "",

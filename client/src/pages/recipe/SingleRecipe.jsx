@@ -21,7 +21,6 @@ import {
   useToggleFavoriteMutation,
   useDeleteRecipeMutation,
   usePublishDraftRecipeMutation,
-
 } from "../../features/recipe/recipeApiSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Rating, IconButton, Menu, MenuItem } from "@mui/material";
@@ -33,7 +32,7 @@ import useAuth from "../../hooks/useAuth";
 import useTitle from "../../hooks/useTitle";
 
 const SingleRecipe = () => {
-  useTitle("Recipen - Recipe");
+  useTitle("RecipeShare - Recipe");
 
   const user = useAuth();
   const { id } = useParams();
@@ -225,56 +224,60 @@ const SingleRecipe = () => {
                   </span>
                 )}
                 {data?.author?._id === user?.userId && (
-                <div className="flex items-center gap-2"> {/* New div to group button and menu */}
-                  {console.log("data?.author?._id:", data?.author?._id)}
-                  {console.log("user?.userId:", user?.userId)}
-                  {console.log("data?.status:", data?.status)}
-                  {data?.status === "Draft" && (
-                    <Button
-                      content={"Publish Recipe"}
-                      handleClick={handlePublish}
-                      loading={isPublishing}
-                      customCss={"rounded-lg gap-3 max-w-max max-sm:gap-2 max-sm:text-sm max-sm:px-2 max-sm:py-1 max-lg:ml-4"}
-                    />
-                  )}
-                  <IconButton
-                    aria-label="more"
-                    id="long-button"
-                    aria-controls={open ? "long-menu" : undefined}
-                    aria-expanded={open ? "true" : undefined}
-                    aria-haspopup="true"
-                    size="small"
-                    onClick={handleMenu}
-                  >
-                    <MoreVert />
-                  </IconButton>
-                  <Menu
-                    id="long-menu"
-                    MenuListProps={{
-                      "aria-labelledby": "long-button",
-                    }}
-                    anchorEl={anchorEl}
-                    open={open}
-                    onClose={handleMenuClose}
-                  >
-                    <MenuItem>
-                      <Link to={`/recipe/edit/${id}`}>Edit</Link>
-                    </MenuItem>
-                    <MenuItem onClick={handleMenuDelete}>Delete</MenuItem>
-                  </Menu>
-                </div>
-              )}
+                  <div className="flex items-center gap-2">
+                    {" "}
+                    {/* New div to group button and menu */}
+                    {console.log("data?.author?._id:", data?.author?._id)}
+                    {console.log("user?.userId:", user?.userId)}
+                    {console.log("data?.status:", data?.status)}
+                    {data?.status === "Draft" && (
+                      <Button
+                        content={"Publish Recipe"}
+                        handleClick={handlePublish}
+                        loading={isPublishing}
+                        customCss={
+                          "rounded-lg gap-3 max-w-max max-sm:gap-2 max-sm:text-sm max-sm:px-2 max-sm:py-1 max-lg:ml-4"
+                        }
+                      />
+                    )}
+                    <IconButton
+                      aria-label="more"
+                      id="long-button"
+                      aria-controls={open ? "long-menu" : undefined}
+                      aria-expanded={open ? "true" : undefined}
+                      aria-haspopup="true"
+                      size="small"
+                      onClick={handleMenu}
+                    >
+                      <MoreVert />
+                    </IconButton>
+                    <Menu
+                      id="long-menu"
+                      MenuListProps={{
+                        "aria-labelledby": "long-button",
+                      }}
+                      anchorEl={anchorEl}
+                      open={open}
+                      onClose={handleMenuClose}
+                    >
+                      <MenuItem>
+                        <Link to={`/recipe/edit/${id}`}>Edit</Link>
+                      </MenuItem>
+                      <MenuItem onClick={handleMenuDelete}>Delete</MenuItem>
+                    </Menu>
+                  </div>
+                )}
               </div>
 
               {/* Author Name and Favorites/Share Buttons */}
               <div className="flex justify-between items-center">
-    {/* Author Name */}
-    <p className="flex gap-2 items-center font-semibold">
-      <LuChefHat className="text-primary" />
-      {data?.author?.firstName && data?.author?.lastName
-        ? `${data.author.firstName}, ${data.author.lastName}`
-        : "Author name not available"}
-    </p>
+                {/* Author Name */}
+                <p className="flex gap-2 items-center font-semibold">
+                  <LuChefHat className="text-primary" />
+                  {data?.author?.firstName && data?.author?.lastName
+                    ? `${data.author.firstName}, ${data.author.lastName}`
+                    : "Author name not available"}
+                </p>
 
                 {/* Favorites and Share Buttons */}
                 <div className="flex gap-2 p-2 bg-light rounded-l-lg">

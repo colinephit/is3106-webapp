@@ -45,7 +45,7 @@ const index = ({ isCollapsed, setIsCollapsed }) => {
           <div className="w-12 h-12">
             <MuiAvatar
               alt={user?.name}
-              src={user?.profilePicture}
+              src={user?.profileImage}
               sx={{ width: 48, height: 48 }}
               className="rounded-full border-primary border-2 -mr-2"
             />

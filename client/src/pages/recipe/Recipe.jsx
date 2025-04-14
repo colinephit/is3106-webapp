@@ -10,21 +10,21 @@ const Recipe = () => {
     search: "",
     difficultyLevel: {
       min: 1,
-      max: 5
+      max: 5,
     },
     cookingTime: {
       min: 1,
-      max: 30
+      max: 30,
     },
     sort: "1",
     ingredients: [],
     category: "",
-    status: "Published"
+    status: "Published",
   });
 
   const { data, isLoading } = useGetRecipesQuery(filter);
   const dispatch = useDispatch();
-  useTitle("Recipen - All Recipes");
+  useTitle("RecipeShare - All Recipes");
 
   useEffect(() => {
     if (!isLoading && data) {

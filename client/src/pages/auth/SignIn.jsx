@@ -17,7 +17,7 @@ const SignIn = () => {
   const [signIn, { isLoading }] = useSignInMutation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  useTitle("Recipen - Sign In");
+  useTitle("RecipeShare - Sign In");
 
   const handleChange = (e) => {
     setFormDetails({ ...formDetails, [e.target.id]: e.target.value });
@@ -59,7 +59,7 @@ const SignIn = () => {
             Welcome back
           </h2>
           <p className="text-center md:text-left text-sm">
-            New to Recipen?{" "}
+            New to RecipeShare?{" "}
             <Link to={"/auth/signup"} className="text-primary font-semibold">
               Create an account
             </Link>

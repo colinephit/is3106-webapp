@@ -126,6 +126,66 @@ const getAllRecipes = async (req, res, next) => {
       },
     },
     {
+      $unwind: {
+        path: "$comments",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "comments.user",
+        foreignField: "_id",
+        as: "comments.userDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$comments.userDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        "comments.user._id": "$comments.userDetails._id",
+        "comments.user.firstName": "$comments.userDetails.firstName",
+        "comments.user.lastName": "$comments.userDetails.lastName",
+      },
+    },
+    // Group comments back into array
+    {
+      $group: {
+        _id: "$_id",
+        recipeName: { $first: "$recipeName" },
+        description: { $first: "$description" },
+        cookingTime: { $first: "$cookingTime" },
+        difficultyLevel: { $first: "$difficultyLevel" },
+        ingredients: { $first: "$ingredients" },
+        categories: { $first: "$categories" },
+        avgRating: { $first: "$avgRating" },
+        createdAt: { $first: "$createdAt" },
+        author: { $first: "$author" },
+        ratings: { $first: "$ratings" },
+        image: { $first: "$image" },
+        status: { $first: "$status" },
+        comments: {
+          $push: {
+            $cond: [
+              {
+                $and: [
+                  { $ne: ["$comments", null] },
+                  { $ne: ["$comments.user", null] },
+                  { $ne: ["$comments.user._id", null] }, // <-- extra safety
+                ],
+              },
+              "$comments",
+              "$$REMOVE",
+            ],
+          },
+        },
+      },
+    },
+    {
       $project: {
         recipeName: 1,
         description: 1,
@@ -138,6 +198,19 @@ const getAllRecipes = async (req, res, next) => {
         author: { firstName: 1, _id: 1, lastName: 1 },
         ratings: { rating: 1 },
         image: 1,
+        status: 1,
+        comments: {
+          $map: {
+            input: "$comments",
+            as: "comment",
+            in: {
+              _id: "$$comment._id",
+              comment: "$$comment.comment",
+              date: "$$comment.date",
+              user: "$$comment.user",
+            },
+          },
+        },
       },
     }
   );

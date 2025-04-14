@@ -14,6 +14,50 @@ import { Avatar as MuiAvatar, Rating } from "@mui/material";
 import { Modal, Button } from "@mui/material";
 import "./ModalStyles.css";
 
+const StatusCell = ({ _id, status }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [localStatus, setLocalStatus] = useState(status);
+  const [updateRecipe] = useUpdateRecipeMutation();
+  const { data: recipeData } = useGetRecipeQuery(_id);
+
+  const handleStatusChange = async (newStatus) => {
+    try {
+      if (!recipeData) return;
+      const updatedRecipe = {
+        ...recipeData,
+        status: newStatus,
+      };
+      console.log("updated recipe is", updatedRecipe);
+      await updateRecipe({ recipeId: _id, ...updatedRecipe }).unwrap();
+      setLocalStatus(newStatus);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating recipe status:", error);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <select
+        value={localStatus}
+        onChange={(e) => handleStatusChange(e.target.value)}
+        onBlur={() => setIsEditing(false)}
+        autoFocus
+      >
+        <option value="Published">Published</option>
+        <option value="Pending">Pending</option>
+        <option value="Draft">Draft</option>
+      </select>
+    );
+  }
+
+  return (
+    <div onClick={() => setIsEditing(true)} style={{ cursor: "pointer" }}>
+      {localStatus}
+    </div>
+  );
+};
+
 const DashboardRecipes = () => {
   const { data, isLoading } = useGetAllRecipesQuery();
   console.log(data);
@@ -34,6 +78,8 @@ const DashboardRecipes = () => {
   const handleDeleteComment = async (_id, commentId) => {
     if (window.confirm("Are you sure you want to delete this comment?")) {
       try {
+        console.log("recipe id:" + _id);
+        console.log("comment id:" + commentId);
         const response = await deleteComment({ _id, commentId }).unwrap();
         alert("Comment deleted successfully");
       } catch (error) {
@@ -52,7 +98,7 @@ const DashboardRecipes = () => {
   const cols = [
     { field: "id", headerName: "ID", width: 50 },
     {
-      field: "title",
+      field: "recipeName",
       headerName: "Title",
       width: 200,
       headerAlign: "center",
@@ -83,7 +129,7 @@ const DashboardRecipes = () => {
       },
     },
     {
-      field: "category",
+      field: "categories",
       headerName: "Category",
       width: 100,
       headerAlign: "center",
@@ -123,6 +169,8 @@ const DashboardRecipes = () => {
       headerAlign: "center",
       align: "left",
       width: 150,
+      valueGetter: (params) =>
+        params.row.author?.firstName + params.row.author?.lastName ?? "",
       renderCell: ({ row: { author } }) => {
         return (
           <div className="flex gap-2 items-center">
@@ -159,52 +207,7 @@ const DashboardRecipes = () => {
       width: 100,
       headerAlign: "center",
       align: "center",
-      renderCell: ({ row: { _id, status } }) => {
-        const [isEditing, setIsEditing] = useState(false);
-        const [localStatus, setLocalStatus] = useState(status);
-        const [updateRecipe] = useUpdateRecipeMutation();
-        const { data: recipeData } = useGetRecipeQuery(_id); //fetch recipe data.
-
-        const handleStatusChange = async (newStatus) => {
-          try {
-            if (!recipeData) return; //add check if data is loaded.
-            const updatedRecipe = {
-              ...recipeData,
-              status: newStatus,
-            };
-            console.log("updated recipe is", updatedRecipe);
-            await updateRecipe({ recipeId: _id, ...updatedRecipe }).unwrap(); //send the whole updated object.
-            setLocalStatus(newStatus);
-            setIsEditing(false);
-          } catch (error) {
-            console.error("Error updating recipe status:", error);
-          }
-        };
-
-        if (isEditing) {
-          return (
-            <select
-              value={localStatus}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              onBlur={() => setIsEditing(false)}
-              autoFocus
-            >
-              <option value="Published">Published</option>
-              <option value="Pending">Pending</option>
-              <option value="Draft">Draft</option>
-            </select>
-          );
-        } else {
-          return (
-            <div
-              onClick={() => setIsEditing(true)}
-              style={{ cursor: "pointer" }}
-            >
-              {localStatus}
-            </div>
-          );
-        }
-      },
+      renderCell: ({ row }) => <StatusCell _id={row._id} status={row.status} />,
     },
     {
       field: "comments",
@@ -226,32 +229,40 @@ const DashboardRecipes = () => {
             <Modal open={openModal} onClose={handleClose}>
               <div className="modal-content">
                 <h3 className="font-bold text-center">Comments</h3>
-                {comments.map((comment, index) => (
-                  <div
-                    key={index}
-                    className="comment-item flex justify-between items-center py-2"
-                  >
-                    <div className="flex flex-col w-full">
-                      <span className="font-semibold">
-                        {comment?.user?.firstName +
-                          " " +
-                          comment?.user?.lastName}
-                      </span>
-                      <p>{comment.comment}</p>
-                      <span className="text-xs text-gray-500">
-                        {new Date(comment.date).toLocaleString()}
-                      </span>
-                    </div>
-                    <div
-                      className="rounded shadow-md w-[40%] text-center cursor-pointer  bg-primaryLight
+                {Array.isArray(comments) && comments.length > 0 ? (
+                  comments
+                    .filter((c) => c?.user?.firstName && c?.user?.lastName)
+                    .map((comment, index) => (
+                      <div
+                        key={index}
+                        className="comment-item flex justify-between items-center py-2"
+                      >
+                        <div className="flex flex-col w-full">
+                          <span className="font-semibold">
+                            {comment?.user?.firstName +
+                              " " +
+                              comment?.user?.lastName}
+                          </span>
+                          <p>{comment.comment}</p>
+                          <span className="text-xs text-gray-500">
+                            {new Date(comment.date).toLocaleString()}
+                          </span>
+                        </div>
+                        <div
+                          className="rounded shadow-md w-[40%] text-center cursor-pointer  bg-primaryLight
             hover:bg-primary text-light py-2 ml-4"
-                      onClick={() => handleDeleteComment(_id, comment._id)}
-                    >
-                      Delete
-                    </div>
-                    <hr />
-                  </div>
-                ))}
+                          onClick={() => handleDeleteComment(_id, comment._id)}
+                        >
+                          Delete
+                        </div>
+                        <hr />
+                      </div>
+                    ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">
+                    No comments available.
+                  </p>
+                )}
                 <Button onClick={handleClose}>Close</Button>
               </div>
             </Modal>
