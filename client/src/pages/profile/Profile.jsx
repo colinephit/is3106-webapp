@@ -64,40 +64,36 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (showPasswordFields) {
       if (formDetails.password !== formDetails.confirmPassword) {
-        toast.error("New password and confirm password do not match.");
+        toast.error("New passwords do not match");
         return;
       }
-
+  
       if (!formDetails.oldPassword) {
         toast.error("Please enter your current password to change it.");
         return;
       }
     }
-
+  
     try {
       const payload = {
         ...formDetails,
         userId: user?.userId,
       };
-
+  
       if (!showPasswordFields || !formDetails.password) {
         delete payload.password;
         delete payload.confirmPassword;
         delete payload.oldPassword;
       }
-
-      const updatedUser = await toast.promise(
-        updateUser(payload).unwrap(),
-        {
-          pending: "Please wait...",
-          success: "User updated successfully",
-          error: "Unable to update user",
-        }
-      );
-
+  
+      const updatedUser = await toast.promise(updateUser(payload).unwrap(), {
+        pending: "Please wait...",
+        success: "User updated successfully",
+      });
+  
       setFormDetails({
         firstName: formDetails.firstName,
         lastName: formDetails.lastName,
@@ -108,21 +104,22 @@ const Profile = () => {
         confirmPassword: "",
         oldPassword: "",
       });
-
+  
       dispatch(
         setCredentials({
           accessToken: updatedUser.accessToken,
           user: updatedUser.user,
         })
       );
-
+  
       navigate("/profile");
-
     } catch (error) {
       console.error("Update failed:", error);
-      toast.error(error?.data || "Update failed. Please try again.");
+      const message =
+        error?.response?.data?.message || error?.data?.message || "Update failed. Please try again.";
+      toast.error(message);
     }
-  };
+  };  
 
   return (
     <section className="box md:max-w-5xl flex flex-col gap-12">

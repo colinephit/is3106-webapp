@@ -83,39 +83,57 @@ const createUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   try {
-    const { firstName, lastName, contactNumber, email, password, image } =
-      req.body;
+    const {
+      firstName,
+      lastName,
+      contactNumber,
+      email,
+      password,
+      confirmPassword,
+      oldPassword,
+      image,
+    } = req.body;
 
-    // disabled cannot be edited
     const foundUser = await User.findOne({
       _id: req.params.id,
       isDisabled: false,
     }).populate("roleId", "roleName");
+
     if (!foundUser) {
-      return res.status(409).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    // check that email is not in used
     const foundEmail = await User.findOne({ email, isDisabled: false });
-    if (foundEmail._id.toString() !== req.user) {
+
+    if (foundEmail && foundEmail._id.toString() !== req.user) {
       return res.status(409).json({ message: "Email already in use" });
     }
 
-    let hashedPassword = null;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 10);
+    if (password || oldPassword || confirmPassword) {
+      if (!oldPassword) {
+        return res.status(400).json({ message: "Current password is required" });
+      }
+
+      const isPasswordCorrect = await bcrypt.compare(oldPassword, foundUser.password);
+      if (!isPasswordCorrect) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      if (password !== confirmPassword) {
+        return res.status(400).json({ message: "New passwords do not match" });
+      }
+
+      foundUser.password = await bcrypt.hash(password, 10);
     }
 
     foundUser.firstName = firstName;
     foundUser.lastName = lastName;
     foundUser.contactNumber = contactNumber;
     foundUser.email = email;
-    foundUser.password = hashedPassword || foundUser.password;
     foundUser.profileImage = image || foundUser.profileImage;
 
     await foundUser.save();
 
-    // Create new access token with updated info
     const accessToken = jwt.sign(
       {
         UserInfo: {
@@ -124,7 +142,7 @@ const updateUser = async (req, res, next) => {
           lastName: lastName,
           contactNumber: contactNumber,
           email: email,
-          profileImage: image || foundUser.profileImage,
+          profileImage: foundUser.profileImage,
           roleId: foundUser.roleId,
           roles: [foundUser.roleId.roleName],
           favorites: foundUser.favorites,
@@ -134,23 +152,22 @@ const updateUser = async (req, res, next) => {
       { expiresIn: "30m" }
     );
 
-    // Send back both access token and updated user details
     return res.status(201).json({
       accessToken,
       user: {
         userId: req.params.id,
-        firstName: firstName,
-        lastName: lastName,
-        contactNumber: contactNumber,
-        email: email,
-        profileImage: image || foundUser.profileImage,
+        firstName,
+        lastName,
+        contactNumber,
+        email,
+        profileImage: foundUser.profileImage,
         roleId: foundUser.roleId,
         roles: [foundUser.roleId.roleName],
         favorites: foundUser.favorites,
       },
     });
   } catch (error) {
-    console.log("error updating user: ", error);
+    console.error("error updating user: ", error);
     next(error);
   }
 };
