@@ -21,7 +21,7 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
     },
     cookingTime: {
       min: 1,
-      max: 999
+      max: 600
     },
     sort: "1",
     ingredients: [],
@@ -126,38 +126,131 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
               aria-controls="panel1-content"
               id="panel1-header"
             >
-              <Typography component="span">Other Filters</Typography>
+              <Typography component="span">Filters</Typography>
             </AccordionSummary>
             <AccordionDetails className="text-center">
+              
               {/* cooking time */}
-              <div>
-                <label className="block font-medium mt-3">Cooking Time (mins)</label>
-                <Slider
-                  sx={{ width: 150 }}
-                  getAriaLabel={() => 'Cooking Time range'}
-                  value={[filter.cookingTime.min, filter.cookingTime.max]}
-                  onChange={(e) => handleRangeChange("cookingTime", e.target.value)}
-                  min={1}
-                  max={999}
-                  valueLabelDisplay="auto"
-                  getAriaValueText={timeValueText}
-                />
-              </div>
+                <div>
+                  <label className="block font-medium mt-3">Cooking Time (in mins)</label>
 
-              {/* difficulty level */}
-              <div>
-                <label className="block font-medium mt-3">Difficulty Level (1-5)</label>
-                <Slider
-                  sx={{ width: 150 }}
-                  getAriaLabel={() => 'Difficulty level'}
-                  value={[filter.difficultyLevel.min, filter.difficultyLevel.max]}
-                  onChange={(e) => handleRangeChange("difficultyLevel", e.target.value)}
-                  min={1}
-                  max={5}
-                  valueLabelDisplay="auto"
-                  getAriaValueText={difficultyValueText}
-                />
-              </div>
+                  {/* Inputs */}
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <input
+                      type="number"
+                      min={1}
+                      max={600}
+                      value={filter.cookingTime.min}
+                      onChange={(e) =>
+                        setFilter((prev) => ({
+                          ...prev,
+                          cookingTime: {
+                            ...prev.cookingTime,
+                            min: Math.min(Number(e.target.value), prev.cookingTime.max),
+                          },
+                        }))
+                      }
+                      className="w-20 px-2 py-1 border rounded text-sm text-center"
+                    />
+                    <span>to</span>
+                    <input
+                      type="number"
+                      min={filter.cookingTime.min}
+                      max={600}
+                      value={filter.cookingTime.max}
+                      onChange={(e) =>
+                        setFilter((prev) => ({
+                          ...prev,
+                          cookingTime: {
+                            ...prev.cookingTime,
+                            max: Math.max(Number(e.target.value), prev.cookingTime.min),
+                          },
+                        }))
+                      }
+                      className="w-20 px-2 py-1 border rounded text-sm text-center"
+                    />
+                  </div>
+
+                  {/* Slider */}
+                  <Slider
+                  sx={{
+                    width: 150,
+                    color: '#FACC15',
+                    '& .MuiSlider-thumb': {
+                      backgroundColor: '#FACC15',
+                      '&:hover, &.Mui-focusVisible, &.Mui-active': {
+                        boxShadow: 'none',
+                        outline: 'none',
+                      },
+                    },
+                    '& .MuiSlider-track': {
+                      backgroundColor: '#FACC15',
+                      border: 'none',
+                    },
+                    '& .MuiSlider-rail': {
+                      backgroundColor: '#FEF9C3',
+                    },
+                    '& .MuiSlider-valueLabel': {
+                      backgroundColor: '#FACC15',
+                      color: '#000',
+                      borderRadius: '4px',
+                    },
+                    '& .MuiSlider-thumb:before': {
+                      boxShadow: 'none',
+                    },
+                  }}                  
+                  
+                    getAriaLabel={() => "Cooking Time range"}
+                    value={[filter.cookingTime.min, filter.cookingTime.max]}
+                    onChange={(e, newValue) => handleRangeChange("cookingTime", newValue)}
+                    min={1}
+                    max={600}
+                    valueLabelDisplay="auto"
+                    getAriaValueText={timeValueText}
+                  />
+                </div>
+
+                {/* difficulty level */}
+                <div>
+                  <label className="block font-medium mt-3">Difficulty Level (1-5)</label>
+                  <Slider
+                  sx={{
+                    width: 150,
+                    color: '#FACC15',
+                    '& .MuiSlider-thumb': {
+                      backgroundColor: '#FACC15',
+                      '&:hover, &.Mui-focusVisible, &.Mui-active': {
+                        boxShadow: 'none',
+                        outline: 'none',
+                      },
+                    },
+                    '& .MuiSlider-track': {
+                      backgroundColor: '#FACC15',
+                      border: 'none',
+                    },
+                    '& .MuiSlider-rail': {
+                      backgroundColor: '#FEF9C3',
+                    },
+                    '& .MuiSlider-valueLabel': {
+                      backgroundColor: '#FACC15',
+                      color: '#000',
+                      borderRadius: '4px',
+                    },
+                    '& .MuiSlider-thumb:before': {
+                      boxShadow: 'none',
+                    },
+                  }}                  
+                  
+                    getAriaLabel={() => 'Difficulty level'}
+                    value={[filter.difficultyLevel.min, filter.difficultyLevel.max]}
+                    onChange={(e, newValue) => handleRangeChange("difficultyLevel", newValue)}
+                    min={1}
+                    max={5}
+                    valueLabelDisplay="auto"
+                    getAriaValueText={difficultyValueText}
+                  />
+                </div>
+
 
               {/* ingredient */}
               <label className="block font-medium mt-3">Ingredients</label>
@@ -166,8 +259,8 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
                 name="ingredients"
                 value={currentIngredient}
                 onChange={(e) => setCurrentIngredient(e.target.value)}
-                className="border-gray-200 border-2 p-2 rounded-lg"
-                placeholder="Enter ingredient to search"
+                className="border-gray-200 border-2 p-2 rounded-lg w-[250px]"
+                placeholder="What do you want to cook?"
               />
               {ingredientSuggestions.length > 0 && (
                 <ul className="relative left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
@@ -213,7 +306,7 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
                     onChange={handleInputChange}
                     className="w-full p-2 border rounded"
                   >
-                    <option value="">Select a category</option>
+                    <option value="">All</option>
                     {categoryList.length > 0 ? (
                       categoryList.map((cat) => (
                         <option key={cat._id} value={cat._id}>
