@@ -36,7 +36,7 @@ import PersistLogin from "./features/auth/PersistLogin";
 import useTitle from "./hooks/useTitle";
 
 function App() {
-  useTitle("Recipen - Home");
+  useTitle("RecipeShare - Home");
 
   return (
     <Router>

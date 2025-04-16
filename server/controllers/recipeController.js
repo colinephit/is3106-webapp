@@ -584,7 +584,7 @@ const updateRecipe = async (req, res, next) => {
       categories,
       instructions,
       additionalInformation,
-      // status,
+      status,
     } = req.body;
 
     //console.log("Request Body:", req.body);
@@ -597,8 +597,8 @@ const updateRecipe = async (req, res, next) => {
       !cookingTime ||
       !ingredients.length ||
       !categories.length ||
-      !instructions.length
-      // || !status
+      !instructions.length ||
+      !status
     ) {
       return res.status(422).json({ message: "Insufficient data" });
     }
@@ -623,7 +623,7 @@ const updateRecipe = async (req, res, next) => {
     foundRecipe.instructions = instructions;
     foundRecipe.categories = categories;
     foundRecipe.additionalInformation = additionalInformation;
-    //foundRecipe.status = status;
+    foundRecipe.status = status;
 
     const updatedRecipe = await foundRecipe.save();
     res.status(201).json(updatedRecipe);
@@ -692,10 +692,10 @@ const deleteRecipe = async (req, res, next) => {
     if (!foundRecipe) {
       return res.status(404).json({ message: "Recipe not found" });
     }
-
-    if (foundRecipe.author.toString() !== req.user.toString()) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
+    // commented out because admin should be able to delete a recipe
+    // if (foundRecipe.author.toString() !== req.user.toString()) {
+    //   return res.status(401).json({ message: "Unauthorized" });
+    // }
 
     await Recipe.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Recipe deleted" });
