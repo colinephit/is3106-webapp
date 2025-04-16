@@ -336,24 +336,35 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
               </select>
             </AccordionDetails>
           </Accordion>
+
         </div>
       </div>
       <div className="flex flex-col gap-8 w-full">
-        <h3 className="font-bold text-xl w-full">Recent {type}s</h3>
-        {displayData?.length ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-            {displayData?.map((singleData) => (
-              <SingleCard
-                key={singleData._id}
-                singleData={singleData}
-                type={type}
-              />
-            ))}
-          </div>
-        ) : (
-          <NoData text={"Data"} />
-        )}
-      </div>
+        {/* Final result summary */}
+        <div className="w-full text-center mt-6">
+          <p className="text-black font-bold text-2xl">
+            {displayData?.length > 0
+              ? `You can make ${displayData.length} recipe${displayData.length > 1 ? "s" : ""}!`
+              : "No matching recipes found."}
+          </p>
+        </div>
+
+      <h3 className="font-bold text-xl w-full">Recent {type}s</h3>
+      {displayData?.length ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+          {displayData?.map((singleData) => (
+            <SingleCard
+              key={singleData._id}
+              singleData={singleData}
+              type={type}
+            />
+          ))}
+        </div>
+      ) : (
+        <NoData text={"Data"} />
+      )}
+    </div>
+
     </section>
   );
 };
