@@ -23,6 +23,7 @@ import {
   Users,
   SignIn,
   SignUp,
+  ForgotPassword,
   CheckoutSuccess,
   CheckoutFailure,
 } from "./pages";
@@ -52,6 +53,7 @@ function App() {
           <Route path="/auth">
             <Route path="signin" element={<SignIn />} />
             <Route path="signup" element={<SignUp />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
           </Route>
 
           <Route element={<PersistLogin />}>

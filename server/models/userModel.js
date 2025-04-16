@@ -59,6 +59,16 @@ const schema = new mongoose.Schema(
         },
         isDisabled: { type: Boolean, default: false },
         refreshToken: { type: [String] },
+
+        resetToken: {
+            type: String,
+            default: null,
+        },
+        tokenExpiry: {
+            type: Date,
+            default: null,
+        },
+
         favorites: [
             {
                 type: mongoose.Schema.Types.ObjectId,

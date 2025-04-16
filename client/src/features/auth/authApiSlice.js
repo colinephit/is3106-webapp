@@ -38,8 +38,20 @@ export const authApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
+
+    forgotPassword: builder.mutation({
+      query: ({ email }) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body: { email },
+      }),
+    }),
   }),
 });
 
-export const { useSignInMutation, useLogoutMutation, useRefreshMutation } =
-  authApiSlice;
+export const {
+  useSignInMutation,
+  useLogoutMutation,
+  useRefreshMutation,
+  useForgotPasswordMutation,
+} = authApiSlice;
