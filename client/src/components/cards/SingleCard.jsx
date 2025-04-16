@@ -54,8 +54,8 @@ const SingleCard = ({ singleData, type }) => {
   };
 
   return (
-    <div className="flex flex-col gap-1 justify-between shadow hover:shadow-lg rounded">
-      {/* Card Top */}
+  <div className="flex flex-col gap-1 justify-between shadow hover:shadow-lg rounded h-full">
+  {/* Card Top */}
       <div className="flex flex-col justify-between h-full ">
         <div className="relative h-full w-full">
           {/* Only for singleData */}
@@ -115,7 +115,9 @@ const SingleCard = ({ singleData, type }) => {
           </Link>
           {/* Card description */}
           <p className="text-sm">
-            {singleData?.description.substring(0, 100)}...
+            {singleData?.description
+              ? singleData.description.substring(0, 100) + "..."
+              : "No description available"}
           </p>
           {/* Card rating */}
           {type === "recipe" && (

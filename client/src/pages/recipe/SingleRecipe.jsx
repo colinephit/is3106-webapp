@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
 import {
   Comment,
   Button,
@@ -174,7 +175,7 @@ const SingleRecipe = () => {
     try {
       console.log("handlePublish function called!");
       await toast.promise(
-        publishDraftRecipe({ recipeId: id }).unwrap(), // Use this
+        publishDraftRecipe({ recipeId: id }).unwrap(),
         {
           pending: "Please wait...",
           success: "Recipe published",
@@ -187,6 +188,29 @@ const SingleRecipe = () => {
       console.error(error);
     }
   };
+
+  useEffect(() => {
+    if (data?._id) {
+      const viewed = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
+  
+      const newEntry = {
+        _id: data._id,
+        recipeName: data.recipeName,
+        image: data.image,
+        description: data.description,
+        ratings: data.ratings,
+        author: data.author,
+        status: data.status,
+      };
+  
+      const updated = [
+        newEntry,
+        ...viewed.filter((item) => item._id !== data._id),
+      ].slice(0, 6); // Max 6 recipes
+  
+      localStorage.setItem("recentlyViewed", JSON.stringify(updated));
+    }
+  }, [data]);  
 
   return (
     <>
