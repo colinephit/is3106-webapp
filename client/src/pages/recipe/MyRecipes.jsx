@@ -41,6 +41,7 @@ const MyRecipes = () => {
           data={data}
           filter={filter}
           onFilterChange={handleFilterChange}
+          showFilterMessage={false}
         />
       )}
     </>

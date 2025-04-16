@@ -44,6 +44,7 @@ const SavedRecipes = () => {
                 data={filteredRecipes}
                 filter={filter}
                 onFilterChange={handleFilterChange}
+                showFilterMessage={false}
             />
         </div>
     );

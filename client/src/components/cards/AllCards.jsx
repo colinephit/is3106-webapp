@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { NoData, SingleCard } from "..";
 import { useGetIngredientsQuery } from "../../features/ingredient/ingredientApiSlice";
 import { useGetAllCategoriesQuery } from "../../features/category/categoryApiSlice";
-import Slider from '@mui/material/Slider';import Accordion from '@mui/material/Accordion';
+import Slider from '@mui/material/Slider';
+import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import Typography from '@mui/material/Typography';
@@ -29,6 +30,8 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
     status: "Published"
   });
 
+  const [filterUsed, setFilterUsed] = useState(false);
+
   const sortOptions = [
     { value: "1", label: "Newest" },
     { value: "2", label: "Oldest" },
@@ -38,7 +41,7 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
 
   const { data: ing } =
     useGetIngredientsQuery(currentIngredient, {
-      skip: currentIngredient.length < 2, // Don't fetch if the query length is less than 2
+      skip: currentIngredient.length < 2,
     });
 
   const { data: categoriesData, isLoading: categoriesLoading } = useGetAllCategoriesQuery();
@@ -51,6 +54,16 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
 
   useEffect(() => {
     onFilterChange(filter);
+    const hasUsedFilter =
+      filter.search.trim() !== "" ||
+      filter.ingredients.length > 0 ||
+      filter.category !== "" ||
+      filter.cookingTime.min !== 1 ||
+      filter.cookingTime.max !== 600 ||
+      filter.difficultyLevel.min !== 1 ||
+      filter.difficultyLevel.max !== 5;
+
+    setFilterUsed(hasUsedFilter);
   }, [filter, onFilterChange]);
 
   useEffect(() => {
@@ -60,12 +73,10 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
     }
 
     if (ing) {
-      console.log("set")
       setIngredientSuggestions(ing);
     }
   }, [ing, currentIngredient]);
 
-  // filter functions
   const handleAddIngredientClick = (ing) => {
     setFilter({ ...filter, "ingredients": [...filter.ingredients, ing] });
     setCurrentIngredient("");
@@ -77,13 +88,11 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
     setFilter({ ...filter, "ingredients": newIngredients });
   };
 
-  // search
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFilter({ ...filter, [name]: value });
   };
 
-  // range
   const handleRangeChange = (name, value) => {
     setFilter((prev) => ({
       ...prev,
@@ -91,15 +100,9 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
     }));
   };
 
-  const timeValueText = (value) => {
-    return `${value} min`;
-  }
+  const timeValueText = (value) => `${value} min`;
+  const difficultyValueText = (value) => `${value}`;
 
-  const difficultyValueText = (value) => {
-    return `${value}`;
-  }
-
-  // Use the data prop for rendering when no ingredients are selected
   const displayData = ingredients.length === 0 ? data : [];
 
   return (
@@ -337,34 +340,34 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange }) => {
             </AccordionDetails>
           </Accordion>
 
-        </div>
+          </div>
       </div>
       <div className="flex flex-col gap-8 w-full">
-        {/* Final result summary */}
-        <div className="w-full text-center mt-6">
-          <p className="text-black font-bold text-2xl">
-            {displayData?.length > 0
-              ? `You can make ${displayData.length} recipe${displayData.length > 1 ? "s" : ""}!`
-              : "No matching recipes found."}
-          </p>
-        </div>
+        {filterUsed && (
+          <div className="w-full text-center mt-6">
+            <p className="text-black font-bold text-2xl">
+              {displayData?.length > 0
+                ? `You can make ${displayData.length} recipe${displayData.length > 1 ? "s" : ""}!`
+                : "No matching recipes found."}
+            </p>
+          </div>
+        )}
 
-      <h3 className="font-bold text-xl w-full">Recent {type}s</h3>
-      {displayData?.length ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
-          {displayData?.map((singleData) => (
-            <SingleCard
-              key={singleData._id}
-              singleData={singleData}
-              type={type}
-            />
-          ))}
-        </div>
-      ) : (
-        <NoData text={"Data"} />
-      )}
-    </div>
-
+        <h3 className="font-bold text-xl w-full">Recent {type}s</h3>
+        {displayData?.length ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+            {displayData?.map((singleData) => (
+              <SingleCard
+                key={singleData._id}
+                singleData={singleData}
+                type={type}
+              />
+            ))}
+          </div>
+        ) : (
+          <NoData text={"Data"} />
+        )}
+      </div>
     </section>
   );
 };
