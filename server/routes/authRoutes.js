@@ -4,6 +4,7 @@ const {
   refreshToken,
   logout,
   forgotPassword,
+  resetPassword
 } = require("../controllers/authController");
 
 const loginLimit = require("../middleware/loginLimit");
@@ -14,5 +15,6 @@ router.route("/login").post(loginLimit, login);
 router.route("/refresh").get(refreshToken);
 router.route("/logout").post(logout);
 router.route("/forgot-password").post(forgotPassword);
+router.route("/reset-password/:token").post(resetPassword);
 
 module.exports = router;

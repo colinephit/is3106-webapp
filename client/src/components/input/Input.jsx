@@ -6,6 +6,7 @@ const Input = ({
   handleChange,
   label,
   id,
+  name,
   type,
   value,
   placeholder,
@@ -33,7 +34,7 @@ const Input = ({
           onChange={handleChange}
           value={value}
           id={id}
-          name={id}
+          name={name}
           onBlur={handleFocus}
           required={required}
           aria-required="true"

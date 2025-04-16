@@ -34,6 +34,7 @@ const DashboardCategories = lazy(() =>
 const SignIn = lazy(() => import("./auth/SignIn"));
 const SignUp = lazy(() => import("./auth/SignUp"));
 const ForgotPassword = lazy(() => import("./auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./auth/ResetPassword"));
 
 export {
   Home,
@@ -60,5 +61,6 @@ export {
   CheckoutFailure,
   SignIn,
   SignUp,
-  ForgotPassword
+  ForgotPassword,
+  ResetPassword
 };

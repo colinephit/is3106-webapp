@@ -26,6 +26,7 @@ import {
   ForgotPassword,
   CheckoutSuccess,
   CheckoutFailure,
+  ResetPassword
 } from "./pages";
 import { ScrollToTop, PageLoading } from "./components";
 import { RootLayout, DashboardLayout } from "./layouts";
@@ -54,6 +55,7 @@ function App() {
             <Route path="signin" element={<SignIn />} />
             <Route path="signup" element={<SignUp />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password/:token" element={<ResetPassword />} />
           </Route>
 
           <Route element={<PersistLogin />}>
