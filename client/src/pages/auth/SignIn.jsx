@@ -85,6 +85,13 @@ const SignIn = () => {
             label={"Password"}
             placeholder={"At least 6 characters long"}
           />
+
+          <p className="text-right text-sm -mt-2">
+            <Link to="/auth/forgot-password" className="text-primary font-medium hover:underline">
+              Forgot password?
+            </Link>
+          </p>
+
           <Button
             content={"Sign in"}
             type={"submit"}
@@ -93,6 +100,7 @@ const SignIn = () => {
           />
         </form>
       </div>
+      
       {/* Sign in banner image */}
       <div className="hidden md:block basis-1/2 bg-login bg-no-repeat bg-cover bg-center"></div>
     </section>
