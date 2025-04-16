@@ -1,9 +1,27 @@
+const nodemailer = require("nodemailer");
+
 const sendEmail = async (to, subject, message) => {
-    console.log("📬 Simulated email send:");
-    console.log("To:", to);
-    console.log("Subject:", subject);
-    console.log("Message:", message);
+  const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    auth: {
+      user: process.env.EMAIL_USER, 
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  const mailOptions = {
+    from: `"RecipeShare" <${process.env.EMAIL_USER}>`,
+    to,
+    subject,
+    html: message,
   };
-  
-  module.exports = sendEmail;
-  
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent:", info.response);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
+module.exports = sendEmail;
