@@ -8,7 +8,6 @@ import {
   NoData,
   ComponentLoading,
 } from "../../components";
-import { IoMailOutline } from "react-icons/io5";
 import { FaRegPaperPlane } from "react-icons/fa";
 import { LuChefHat, LuBook } from "react-icons/lu";
 import { BsStopwatch } from "react-icons/bs";
@@ -29,6 +28,7 @@ import {
   useDeleteRecipeMutation,
   usePublishDraftRecipeMutation,
   useFlagRecipeMutation,
+  useAddRecentlyViewedMutation,
 } from "../../features/recipe/recipeApiSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Rating, IconButton, Menu, MenuItem } from "@mui/material";
@@ -58,6 +58,7 @@ const SingleRecipe = () => {
   const [deleteRecipe] = useDeleteRecipeMutation();
   const [publishDraftRecipe, { isLoading: isPublishing }] =
     usePublishDraftRecipeMutation();
+  const [addToRecentlyViewed] = useAddRecentlyViewedMutation();
 
   const [formDetails, setFormDetails] = useState({
     name: user?.firstName || "",
@@ -221,27 +222,19 @@ const SingleRecipe = () => {
   };
 
   useEffect(() => {
-    if (data?._id) {
-      const viewed = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
-
-      const newEntry = {
-        _id: data._id,
-        recipeName: data.recipeName,
-        image: data.image,
-        description: data.description,
-        ratings: data.ratings,
-        author: data.author,
-        status: data.status,
+    if (user?.userId && data?._id) {
+      const addRecipeToRecent = async () => {
+        try {
+          await addToRecentlyViewed(data._id).unwrap();
+          console.log("Recipe added to recently viewed:", data._id);
+        } catch (error) {
+          console.error('Error adding to recently viewed:', error);
+        }
       };
 
-      const updated = [
-        newEntry,
-        ...viewed.filter((item) => item._id !== data._id),
-      ].slice(0, 6); // Max 6 recipes
-
-      localStorage.setItem("recentlyViewed", JSON.stringify(updated));
+      addRecipeToRecent();
     }
-  }, [data]);
+  }, [data, id, addToRecentlyViewed, user?.userId]);
 
   const isUserLoggedIn = !!user?.userId;
 

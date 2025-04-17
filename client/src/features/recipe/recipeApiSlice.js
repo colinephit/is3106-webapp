@@ -149,6 +149,28 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: ["recipes"],
     }),
+    getRecentlyViewed: builder.query({
+      query: () => ({
+        url: "/recipes/recent", 
+        method: "GET",
+      }),
+      providesTags: ["RecentlyViewed"], 
+    }),
+    addRecentlyViewed: builder.mutation({
+      query: (recipeId) => ({
+        url: "/recipes/recent", 
+        method: "POST",
+        body: { recipeId },
+      }),
+      invalidatesTags: ["RecentlyViewed"],
+    }),
+    clearRecentlyViewed: builder.mutation({
+      query: () => ({
+        url: "/recipes/recent", 
+        method: "DELETE",
+      }),
+      invalidatesTags: ["RecentlyViewed"],
+    }),
   }),
 });
 
@@ -169,4 +191,7 @@ export const {
   useGetFavoriteRecipesQuery,
   useFlagRecipeMutation,
   useDeleteFlagRecipeMutation,
+  useGetRecentlyViewedQuery,
+  useAddRecentlyViewedMutation,
+  useClearRecentlyViewedMutation,
 } = recipeApiSlice;

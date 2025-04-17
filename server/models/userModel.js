@@ -75,6 +75,11 @@ const schema = new mongoose.Schema(
                 ref: "Recipe",
             },
         ],
+        recentlyViewed: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Recipe'
+          }
+        ],
     },
     { timestamps: true }
 );
