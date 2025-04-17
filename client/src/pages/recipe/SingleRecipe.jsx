@@ -72,7 +72,7 @@ const SingleRecipe = () => {
   );
 
   const [rating, setRating] = useState(
-    data?.ratings?.find((d) => d.user == user.userId)?.rating || 0
+    data?.ratings?.find((d) => user && d.user == user.userId)?.rating || 0
   );
 
   const averageRating =
@@ -243,6 +243,8 @@ const SingleRecipe = () => {
     }
   }, [data]);
 
+  const isUserLoggedIn = !!user?.userId;
+
   return (
     <>
       {rest?.isLoading ? (
@@ -336,27 +338,35 @@ const SingleRecipe = () => {
 
                 {/* Favorites and Share Buttons */}
                 <div className="flex gap-2 p-2 bg-light rounded-l-lg">
-                  {user?.favorites?.some((ele) => ele === id) ? (
-                    <AiFillHeart
-                      className="text-2xl text-red-500 cursor-pointer"
-                      onClick={handleToggleFavorite}
-                    />
+                  {isUserLoggedIn ? (
+                    user?.favorites?.some((ele) => ele === id) ? (
+                      <AiFillHeart
+                        className="text-2xl text-red-500 cursor-pointer"
+                        onClick={handleToggleFavorite}
+                      />
+                    ) : (
+                      <AiOutlineHeart
+                        className="text-2xl text-red-500 cursor-pointer"
+                        onClick={handleToggleFavorite}
+                      />
+                    )
                   ) : (
-                    <AiOutlineHeart
-                      className="text-2xl text-red-500 cursor-pointer"
-                      onClick={handleToggleFavorite}
-                    />
+                    <AiOutlineHeart className="text-2xl text-gray-400 cursor-not-allowed" />
                   )}
                   <ShareButton
-                    url={`${import.meta.env.VITE_BASE_URL}/recipe/${data?._id}`}
+                    url={`<span class="math-inline">\{import\.meta\.env\.VITE\_BASE\_URL\}/recipe/</span>{data?._id}`}
                   />
-                  {data?.flags?.some((ele) => ele.user === user?.userId) ? (
-                    <AiFillFlag className="text-2xl text-red-500 cursor-pointer" />
+                  {isUserLoggedIn ? (
+                    data?.flags?.some((ele) => ele.user === user?.userId) ? (
+                      <AiFillFlag className="text-2xl text-red-500 cursor-pointer" />
+                    ) : (
+                      <AiOutlineFlag
+                        className="text-2xl text-red-500 cursor-pointer"
+                        onClick={handleOpenModal}
+                      />
+                    )
                   ) : (
-                    <AiOutlineFlag
-                      className="text-2xl text-red-500 cursor-pointer"
-                      onClick={handleOpenModal}
-                    />
+                    <AiOutlineFlag className="text-2xl text-gray-400 cursor-not-allowed" />
                   )}
 
                   {showModal && (
@@ -380,9 +390,13 @@ const SingleRecipe = () => {
                             Cancel
                           </button>
                           <button
-                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                            className={`py-2 px-4 rounded-md ${
+                              !message.trim() || !isUserLoggedIn
+                                ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                            }`}
                             onClick={handleFlagRecipe}
-                            disabled={!message.trim()}
+                            disabled={!message.trim() || !isUserLoggedIn}
                           >
                             Submit
                           </button>
@@ -455,20 +469,32 @@ const SingleRecipe = () => {
           </div>
           <hr />
           {/* Rate recipe */}
-          <div className="my-6 w-full sm:w-2/3 md:w-1/2 mx-auto flex justify-between gap-6">
+          <div className="my-6 w-full sm:w-2/3 md:w-1/2 mx-auto flex justify-between gap-6 items-center">
             <h3 className="font-bold text-2xl">Rate the recipe</h3>
             <Rating
               size={"large"}
               precision={0.25}
               value={rating}
-              onChange={handleRating}
+              onChange={isUserLoggedIn ? handleRating : null}
+              readOnly={!isUserLoggedIn}
+              sx={!isUserLoggedIn ? {
+                "& .MuiRating-iconEmpty": {
+                  color: "grey",
+                },
+                "& .MuiRating-iconFilled": {
+                  color: "grey",
+                },
+              } : {}}
             />
+            {!isUserLoggedIn && (
+              <p className="text-sm text-gray-500 mt-1">Log in to leave a rating</p>
+            )}
           </div>
           <hr />
           {/* Recipe comment form */}
           <div className="my-10 w-full sm:w-2/3 md:w-1/2 mx-auto flex flex-col gap-6">
             <h3 className="font-bold text-2xl">Leave a Comment</h3>
-            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-4" onSubmit={isUserLoggedIn ? handleSubmit : (e) => e.preventDefault()}>
               <div className="flex flex-col relative ">
                 <label htmlFor="message" className="text-sm font-semibold mb-3">
                   Comment
@@ -478,18 +504,20 @@ const SingleRecipe = () => {
                   value={formDetails.message}
                   id="message"
                   rows={4}
-                  required
-                  aria-required="true"
-                  placeholder="Leave a comment..."
-                  className="py-2 px-4 border bg-gray-100 rounded-lg focus:outline outline-primary"
+                  required={isUserLoggedIn}
+                  aria-required={isUserLoggedIn ? "true" : "false"}
+                  placeholder={isUserLoggedIn ? "Leave a comment..." : "Log in to leave a comment"}
+                  className={`py-2 px-4 border bg-gray-100 rounded-lg focus:outline outline-primary ${!isUserLoggedIn ? 'cursor-not-allowed' : ''}`}
+                  disabled={!isUserLoggedIn}
                 />
               </div>
               <Button
                 content={"Post comment"}
                 icon={<FaRegPaperPlane />}
                 type={"submit"}
-                customCss={"rounded-lg gap-3 max-w-max"}
+                customCss={`rounded-lg gap-3 max-w-max ${!isUserLoggedIn ? 'bg-gray-400 cursor-not-allowed' : ''}`}
                 loading={isLoading}
+                disabled={isLoading || !isUserLoggedIn}
               />
             </form>
           </div>
@@ -505,7 +533,8 @@ const SingleRecipe = () => {
                     comment={comment}
                     user={comment?.user}
                     userId={user?.userId}
-                    handleDeleteComment={handleDeleteComment}
+                    handleDeleteComment={isUserLoggedIn ? handleDeleteComment : null}
+                    isDeletable={isUserLoggedIn && comment?.user?._id === user?.userId}
                   />
                 ))}
               </div>
