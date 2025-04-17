@@ -59,7 +59,7 @@ const Home = () => {
             />
             {!user?.roles?.some(
                 (role) => role === "BasicUser" || role === "Admin"
-            ) && <Subscribe />}
+            )}
             <RecentlyViewedRecipes />
         </>
     );

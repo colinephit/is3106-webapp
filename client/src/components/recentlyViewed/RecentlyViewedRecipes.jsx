@@ -42,7 +42,7 @@ const RecentlyViewedRecipes = () => {
       <hr className="w-full" />
 
       {recentRecipes.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10" style={{ width: "100%" }}>
           {recentRecipes.slice(0, 4).map((recipe) => (
             <SingleCard key={recipe._id} singleData={recipe} type="recipe" />
           ))}
