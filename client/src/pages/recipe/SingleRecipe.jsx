@@ -469,24 +469,6 @@ const SingleRecipe = () => {
           <div className="my-10 w-full sm:w-2/3 md:w-1/2 mx-auto flex flex-col gap-6">
             <h3 className="font-bold text-2xl">Leave a Comment</h3>
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-              <Input
-                type={"text"}
-                id={"name"}
-                icon={<AiOutlineUser />}
-                handleChange={handleChange}
-                value={formDetails.name}
-                label={"Name"}
-                placeholder={"John Doe"}
-              />
-              <Input
-                type={"email"}
-                id={"email"}
-                icon={<IoMailOutline />}
-                handleChange={handleChange}
-                value={formDetails.email}
-                label={"Email"}
-                placeholder={"example@abc.com"}
-              />
               <div className="flex flex-col relative ">
                 <label htmlFor="message" className="text-sm font-semibold mb-3">
                   Comment
