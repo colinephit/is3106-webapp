@@ -20,7 +20,7 @@ const Recipe = () => {
         ingredients: [],
         category: "",
         status: "Published",
-        limit: 5,
+        limit: 6,
         skip: 0,
         currentPage: 1,
     });
@@ -40,7 +40,6 @@ const Recipe = () => {
         setFilter(filter);
 
         dispatch(setRecipes(data));
-        // Call your API to fetch filtered recipes
     };
 
     return (

@@ -16,6 +16,9 @@ const {
   getOwnRecipes,
   getFavouriteRecipes,
   deleteFlag,
+  getRecentlyViewed,
+  addRecentlyViewed,
+  clearRecentlyViewed
 } = require("../controllers/recipeController");
 const { createReport } = require("../controllers/reportController");
 const ROLES_LIST = require("../config/rolesList");
@@ -62,6 +65,21 @@ router
     [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
     deleteFlag
   );
+
+  router.route("/recent")
+  .get(
+    [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
+    getRecentlyViewed
+  )
+  .post(
+    [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
+    addRecentlyViewed
+  )
+  .delete(
+    [verifyJwt, verifyRoles(ROLES_LIST.BasicUser, ROLES_LIST.Admin)],
+    clearRecentlyViewed
+  );
+
 
 router
   .route("/:id")

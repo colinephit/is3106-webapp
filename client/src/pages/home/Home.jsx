@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
     Hero,
     HomeCategories,
-    Subscribe,
     RecentlyViewedRecipes,
 } from "../../components";
 import { useGetRecipesQuery } from "../../features/recipe/recipeApiSlice";
@@ -57,10 +56,9 @@ const Home = () => {
                 filterUsed={filterUsed}
                 showFilterMessage={filterUsed}
             />
-            {!user?.roles?.some(
-                (role) => role === "BasicUser" || role === "Admin"
-            ) && <Subscribe />}
-            <RecentlyViewedRecipes />
+            {user?.userId && (
+                <RecentlyViewedRecipes />
+            )}
         </>
     );
 };

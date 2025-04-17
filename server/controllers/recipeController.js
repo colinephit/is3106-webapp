@@ -911,6 +911,75 @@ const toggleFavoriteRecipe = async (req, res, next) => {
     }
 };
 
+const addRecentlyViewed = async (req, res, next) => {
+    try {
+        const userId = req.user; 
+        const { recipeId } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(recipeId)) {
+            return res.status(400).json({ message: 'Invalid recipe ID' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const recipeObjectId = new mongoose.Types.ObjectId(recipeId);
+
+        if (!user.recentlyViewed.some(id => id.equals(recipeObjectId))) {
+            user.recentlyViewed.push(recipeObjectId);
+            if (user.recentlyViewed.length > 4) {
+                user.recentlyViewed.shift();
+            }
+            await user.save();
+        }
+
+        res.status(200).json({ message: 'Recipe added to recently viewed' });
+
+    } catch (error) {
+        console.error('Error adding to recently viewed:', error);
+        next(error);
+    }
+};
+
+const getRecentlyViewed = async (req, res, next) => {
+    try {
+        const userId = req.user;
+
+        const user = await User.findById(userId).populate('recentlyViewed');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.status(200).send(user.recentlyViewed);
+
+    } catch (error) {
+        console.error('Error fetching recently viewed:', error);
+        next(error);
+    }
+};
+
+const clearRecentlyViewed = async (req, res, next) => {
+    try {
+        const userId = req.user;
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.recentlyViewed = [];
+        await user.save();
+
+        res.status(200).json({ message: 'Recently viewed history cleared' });
+
+    } catch (error) {
+        console.error('Error clearing recently viewed:', error);
+        next(error);
+    }
+};
+
 module.exports = {
     getAllRecipes,
     getRecipe,
@@ -928,4 +997,7 @@ module.exports = {
     getOwnRecipes,
     getFavouriteRecipes,
     deleteFlag,
+    getRecentlyViewed,
+    addRecentlyViewed,
+    clearRecentlyViewed,
 };
