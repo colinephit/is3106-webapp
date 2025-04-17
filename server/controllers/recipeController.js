@@ -122,7 +122,7 @@ const getAllRecipes = async (req, res, next) => {
     { $unwind: "$author" },
     {
       $match: {
-        "author.isDisabled": false, // or "author.enabled": true, based on your schema
+        "author.isDisabled": false,
       },
     },
     {
@@ -152,7 +152,33 @@ const getAllRecipes = async (req, res, next) => {
         "comments.user.lastName": "$comments.userDetails.lastName",
       },
     },
-    // Group comments back into array
+    {
+      $unwind: {
+        path: "$flags",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "flags.user",
+        foreignField: "_id",
+        as: "flags.userDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$flags.userDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        "flags.user._id": "$flags.userDetails._id",
+        "flags.user.firstName": "$flags.userDetails.firstName",
+        "flags.user.lastName": "$flags.userDetails.lastName",
+      },
+    },
     {
       $group: {
         _id: "$_id",
@@ -168,6 +194,21 @@ const getAllRecipes = async (req, res, next) => {
         ratings: { $first: "$ratings" },
         image: { $first: "$image" },
         status: { $first: "$status" },
+        flags: {
+          $push: {
+            $cond: [
+              {
+                $and: [
+                  { $ne: ["$flags", null] },
+                  { $ne: ["$flags.user", null] },
+                  { $ne: ["$flags.user._id", null] },
+                ],
+              },
+              "$flags",
+              "$$REMOVE",
+            ],
+          },
+        },
         comments: {
           $push: {
             $cond: [
@@ -175,7 +216,7 @@ const getAllRecipes = async (req, res, next) => {
                 $and: [
                   { $ne: ["$comments", null] },
                   { $ne: ["$comments.user", null] },
-                  { $ne: ["$comments.user._id", null] }, // <-- extra safety
+                  { $ne: ["$comments.user._id", null] },
                 ],
               },
               "$comments",
@@ -199,16 +240,40 @@ const getAllRecipes = async (req, res, next) => {
         ratings: { rating: 1 },
         image: 1,
         status: 1,
-        comments: {
-          $map: {
-            input: "$comments",
-            as: "comment",
-            in: {
-              _id: "$$comment._id",
-              comment: "$$comment.comment",
-              date: "$$comment.date",
-              user: "$$comment.user",
+        flags: {
+          $cond: {
+            if: { $isArray: "$flags" },
+            then: {
+              $map: {
+                input: "$flags",
+                as: "flag",
+                in: {
+                  _id: "$$flag._id",
+                  message: "$$flag.message",
+                  date: "$$flag.date",
+                  user: "$$flag.user",
+                },
+              },
             },
+            else: [],
+          },
+        },
+        comments: {
+          $cond: {
+            if: { $isArray: "$comments" },
+            then: {
+              $map: {
+                input: "$comments",
+                as: "comment",
+                in: {
+                  _id: "$$comment._id",
+                  comment: "$$comment.comment",
+                  date: "$$comment.date",
+                  user: "$$comment.user",
+                },
+              },
+            },
+            else: [],
           },
         },
       },
@@ -729,6 +794,30 @@ const addComment = async (req, res, next) => {
   }
 };
 
+const flagRecipe = async (req, res, next) => {
+  try {
+    const { message } = req.body;
+
+    // Validate userId and commentText
+    if (!message) {
+      return res.status(400).json({ message: "Message is required." });
+    }
+
+    const recipe = await Recipe.findById(req.params.id);
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found." });
+    }
+
+    // Add the new comment
+    recipe.flags.push({ user: req.user, message });
+    await recipe.save();
+
+    res.status(201).json({ message: "Recipe flagged successfully." });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const deleteComment = async (req, res, next) => {
   try {
     const { recipeId, commentId } = req.params;
@@ -751,6 +840,32 @@ const deleteComment = async (req, res, next) => {
     await recipe.save();
 
     res.status(200).json({ message: "Comment deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting comment:", error);
+    next(error);
+  }
+};
+
+const deleteFlag = async (req, res, next) => {
+  try {
+    const { recipeId, flagId } = req.params;
+
+    const recipe = await Recipe.findById(recipeId);
+
+    if (!recipe) {
+      return res.status(404).json({ message: "Recipe not found." });
+    }
+
+    const flagIndex = recipe.flags.findIndex((flag) => flag._id.equals(flagId));
+
+    if (flagIndex === -1) {
+      return res.status(404).json({ message: "Flag not found." });
+    }
+
+    recipe.flags.splice(flagIndex, 1);
+    await recipe.save();
+
+    res.status(200).json({ message: "Flag deleted successfully." });
   } catch (error) {
     console.error("Error deleting comment:", error);
     next(error);
@@ -812,8 +927,10 @@ module.exports = {
   deleteRecipe,
   addComment,
   deleteComment,
+  flagRecipe,
   toggleFavoriteRecipe,
   getTopRecipes,
   getOwnRecipes,
   getFavouriteRecipes,
+  deleteFlag,
 };

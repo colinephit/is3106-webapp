@@ -8,6 +8,7 @@ import {
   useDeleteCommentRecipeMutation,
   useUpdateRecipeMutation,
   useGetRecipeQuery,
+  useDeleteFlagRecipeMutation,
 } from "../../features/recipe/recipeApiSlice";
 import { useGetCategoryQuery } from "../../features/category/categoryApiSlice";
 import { Avatar as MuiAvatar, Rating } from "@mui/material";
@@ -59,7 +60,7 @@ const StatusCell = ({ _id, status }) => {
 };
 
 const DashboardRecipes = () => {
-  const { data, isLoading } = useGetAllRecipesQuery();
+  const { data, isLoading, refetch } = useGetAllRecipesQuery();
   console.log(data);
   const dispatch = useDispatch();
   const updatedData = data?.map((item, index) => ({
@@ -68,6 +69,7 @@ const DashboardRecipes = () => {
   }));
   const [deleteRecipe] = useDeleteRecipeMutation();
   const [deleteComment] = useDeleteCommentRecipeMutation();
+  const [deleteFlag] = useDeleteFlagRecipeMutation();
 
   const handleDelete = (_id) => {
     if (window.confirm("Are you sure you want to delete?")) {
@@ -82,9 +84,31 @@ const DashboardRecipes = () => {
         console.log("comment id:" + commentId);
         const response = await deleteComment({ _id, commentId }).unwrap();
         alert("Comment deleted successfully");
+        setSelectedRecipe((prev) => ({
+          ...prev,
+          comments: prev.comments.filter((c) => c._id !== commentId),
+        }));
       } catch (error) {
         console.error("Error deleting comment:", error);
         alert("Failed to delete comment.");
+      }
+    }
+  };
+
+  const handleDeleteFlag = async (_id, flagId) => {
+    if (window.confirm("Are you sure you want to delete this flag?")) {
+      try {
+        console.log("recipe id:" + _id);
+        console.log("flag id:" + flagId);
+        const response = await deleteFlag({ _id, flagId }).unwrap();
+        alert("Flag deleted successfully");
+        setSelectedRecipe((prev) => ({
+          ...prev,
+          flags: prev.flags.filter((f) => f._id !== flagId),
+        }));
+      } catch (error) {
+        console.error("Error deleting flag:", error);
+        alert("Failed to delete flag.");
       }
     }
   };
@@ -94,6 +118,10 @@ const DashboardRecipes = () => {
       dispatch(setRecipes(data));
     }
   }, [isLoading]);
+
+  const [openFlagsModal, setOpenFlagsModal] = useState(false);
+  const [openCommentsModal, setOpenCommentsModal] = useState(false);
+  const [selectedRecipe, setSelectedRecipe] = useState(null);
 
   const cols = [
     { field: "id", headerName: "ID", width: 50 },
@@ -210,71 +238,45 @@ const DashboardRecipes = () => {
       renderCell: ({ row }) => <StatusCell _id={row._id} status={row.status} />,
     },
     {
+      field: "flags",
+      headerName: "Flags",
+      width: 100,
+      renderCell: ({ row }) => (
+        <Button
+          onClick={() => {
+            setSelectedRecipe(row);
+            setOpenFlagsModal(true);
+          }}
+        >
+          {Array.isArray(row.flags)
+            ? row.flags.filter((c) => c && c.message).length
+            : 0}
+        </Button>
+      ),
+    },
+    {
       field: "comments",
       headerName: "Comments",
       width: 100,
-      headerAlign: "center",
-      align: "center",
-      renderCell: ({ row: { comments, _id } }) => {
-        const [openModal, setOpenModal] = useState(false);
-
-        const handleOpen = () => setOpenModal(true);
-        const handleClose = () => setOpenModal(false);
-
-        return (
-          <div className="flex gap-2 items-center">
-            <Button onClick={handleOpen}>View</Button>
-
-            {/* Modal to show comments */}
-            <Modal open={openModal} onClose={handleClose}>
-              <div className="modal-content">
-                <h3 className="font-bold text-center">Comments</h3>
-                {Array.isArray(comments) && comments.length > 0 ? (
-                  comments
-                    .filter((c) => c?.user?.firstName && c?.user?.lastName)
-                    .map((comment, index) => (
-                      <div
-                        key={index}
-                        className="comment-item flex justify-between items-center py-2"
-                      >
-                        <div className="flex flex-col w-full">
-                          <span className="font-semibold">
-                            {comment?.user?.firstName +
-                              " " +
-                              comment?.user?.lastName}
-                          </span>
-                          <p>{comment.comment}</p>
-                          <span className="text-xs text-gray-500">
-                            {new Date(comment.date).toLocaleString()}
-                          </span>
-                        </div>
-                        <div
-                          className="rounded shadow-md w-[40%] text-center cursor-pointer  bg-primaryLight
-            hover:bg-primary text-light py-2 ml-4"
-                          onClick={() => handleDeleteComment(_id, comment._id)}
-                        >
-                          Delete
-                        </div>
-                        <hr />
-                      </div>
-                    ))
-                ) : (
-                  <p className="text-center text-gray-500 py-4">
-                    No comments available.
-                  </p>
-                )}
-                <Button onClick={handleClose}>Close</Button>
-              </div>
-            </Modal>
-          </div>
-        );
-      },
+      renderCell: ({ row }) => (
+        <Button
+          onClick={() => {
+            setSelectedRecipe(row);
+            setOpenCommentsModal(true);
+          }}
+        >
+          {Array.isArray(row.comments)
+            ? row.comments.filter((c) => c && c.comment).length
+            : 0}
+        </Button>
+      ),
     },
+
     {
       headerName: "Actions",
       headerAlign: "center",
       align: "center",
-      minWidth: 200,
+      minWidth: 180,
       renderCell: ({ row: { _id } }) => {
         return (
           <div
@@ -298,6 +300,89 @@ const DashboardRecipes = () => {
           <Table rows={updatedData} cols={cols} />
         )}
       </div>
+      {/* Flags Modal */}
+      <Modal open={openFlagsModal} onClose={() => setOpenFlagsModal(false)}>
+        <div className="modal-content">
+          <h3 className="font-bold text-center">Flags</h3>
+          {selectedRecipe?.flags?.length > 0 ? (
+            selectedRecipe.flags
+              .filter((flag) => flag && flag.message)
+              .map((flag, index) => (
+                <div
+                  key={index}
+                  className="comment-item flex justify-between items-center py-2"
+                >
+                  <div className="flex flex-col w-full">
+                    <span className="font-semibold">
+                      {flag.user?.firstName + " " + flag.user?.lastName}
+                    </span>
+                    <p>{flag.message}</p>
+                    <span className="text-xs text-gray-500">
+                      {new Date(flag.date).toLocaleString()}
+                    </span>
+                  </div>
+                  <div
+                    className="rounded shadow-md w-[40%] text-center cursor-pointer  bg-primaryLight
+              hover:bg-primary text-light py-2 ml-4"
+                    onClick={() =>
+                      handleDeleteFlag(selectedRecipe._id, flag._id)
+                    }
+                  >
+                    Delete
+                  </div>
+                </div>
+              ))
+          ) : (
+            <p className="text-center text-gray-500 py-4">
+              No flags available.
+            </p>
+          )}
+          <Button onClick={() => setOpenFlagsModal(false)}>Close</Button>
+        </div>
+      </Modal>
+      {/* Comments Modal */}
+      <Modal
+        open={openCommentsModal}
+        onClose={() => setOpenCommentsModal(false)}
+      >
+        <div className="modal-content">
+          <h3 className="font-bold text-center">Comments</h3>
+          {selectedRecipe?.comments?.length > 0 ? (
+            selectedRecipe.comments
+              .filter((comment) => comment && comment.comment)
+              .map((comment, index) => (
+                <div
+                  key={index}
+                  className="comment-item flex justify-between items-center py-2"
+                >
+                  <div className="flex flex-col w-full">
+                    <span className="font-semibold">
+                      {comment.user?.firstName + " " + comment.user?.lastName}
+                    </span>
+                    <p>{comment.comment}</p>
+                    <span className="text-xs text-gray-500">
+                      {new Date(comment.date).toLocaleString()}
+                    </span>
+                  </div>
+                  <div
+                    className="rounded shadow-md w-[40%] text-center cursor-pointer  bg-primaryLight
+              hover:bg-primary text-light py-2 ml-4"
+                    onClick={() =>
+                      handleDeleteComment(selectedRecipe._id, comment._id)
+                    }
+                  >
+                    Delete
+                  </div>
+                </div>
+              ))
+          ) : (
+            <p className="text-center text-gray-500 py-4">
+              No comments available.
+            </p>
+          )}
+          <Button onClick={() => setOpenCommentsModal(false)}>Close</Button>
+        </div>
+      </Modal>
     </section>
   );
 };

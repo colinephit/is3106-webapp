@@ -13,7 +13,13 @@ import { FaRegPaperPlane } from "react-icons/fa";
 import { LuChefHat, LuBook } from "react-icons/lu";
 import { BsStopwatch } from "react-icons/bs";
 import { LiaWeightSolid } from "react-icons/lia";
-import { AiOutlineHeart, AiFillHeart, AiOutlineUser } from "react-icons/ai";
+import {
+  AiOutlineHeart,
+  AiFillHeart,
+  AiOutlineUser,
+  AiOutlineFlag,
+  AiFillFlag,
+} from "react-icons/ai";
 import {
   useGetRecipeQuery,
   useRateRecipeMutation,
@@ -22,6 +28,7 @@ import {
   useToggleFavoriteMutation,
   useDeleteRecipeMutation,
   usePublishDraftRecipeMutation,
+  useFlagRecipeMutation,
 } from "../../features/recipe/recipeApiSlice";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Rating, IconButton, Menu, MenuItem } from "@mui/material";
@@ -44,6 +51,7 @@ const SingleRecipe = () => {
 
   const { data, ...rest } = useGetRecipeQuery(id);
   const [rateRecipe] = useRateRecipeMutation();
+  const [flagRecipe] = useFlagRecipeMutation();
   const [commentRecipe, { isLoading }] = useCommentRecipeMutation();
   const [deleteComment] = useDeleteCommentRecipeMutation();
   const [toggleFavorite] = useToggleFavoriteMutation();
@@ -91,6 +99,32 @@ const SingleRecipe = () => {
       );
     } catch (error) {
       toast.error(error.data);
+      console.error(error);
+    }
+  };
+
+  const [showModal, setShowModal] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleOpenModal = () => {
+    if (!user) {
+      toast.error("You must sign in first");
+      return navigate("/auth/signin");
+    }
+    setShowModal(true);
+  };
+
+  const handleFlagRecipe = async () => {
+    try {
+      await toast.promise(flagRecipe({ message, recipeId: id }).unwrap(), {
+        pending: "Please wait...",
+        success: "Recipe successfully flagged",
+        error: "Error flagging recipe",
+      });
+      setShowModal(false);
+      setMessage(""); // clear input after success
+    } catch (error) {
+      toast.error(error?.data || "Unknown error");
       console.error(error);
     }
   };
@@ -174,14 +208,11 @@ const SingleRecipe = () => {
   const handlePublish = async () => {
     try {
       console.log("handlePublish function called!");
-      await toast.promise(
-        publishDraftRecipe({ recipeId: id }).unwrap(),
-        {
-          pending: "Please wait...",
-          success: "Recipe published",
-          error: "Could not publish recipe",
-        }
-      );
+      await toast.promise(publishDraftRecipe({ recipeId: id }).unwrap(), {
+        pending: "Please wait...",
+        success: "Recipe published",
+        error: "Could not publish recipe",
+      });
       rest.refetch();
     } catch (error) {
       toast.error(error.data);
@@ -192,7 +223,7 @@ const SingleRecipe = () => {
   useEffect(() => {
     if (data?._id) {
       const viewed = JSON.parse(localStorage.getItem("recentlyViewed")) || [];
-  
+
       const newEntry = {
         _id: data._id,
         recipeName: data.recipeName,
@@ -202,15 +233,15 @@ const SingleRecipe = () => {
         author: data.author,
         status: data.status,
       };
-  
+
       const updated = [
         newEntry,
         ...viewed.filter((item) => item._id !== data._id),
       ].slice(0, 6); // Max 6 recipes
-  
+
       localStorage.setItem("recentlyViewed", JSON.stringify(updated));
     }
-  }, [data]);  
+  }, [data]);
 
   return (
     <>
@@ -319,6 +350,46 @@ const SingleRecipe = () => {
                   <ShareButton
                     url={`${import.meta.env.VITE_BASE_URL}/recipe/${data?._id}`}
                   />
+                  {data?.flags?.some((ele) => ele.user === user?.userId) ? (
+                    <AiFillFlag className="text-2xl text-red-500 cursor-pointer" />
+                  ) : (
+                    <AiOutlineFlag
+                      className="text-2xl text-red-500 cursor-pointer"
+                      onClick={handleOpenModal}
+                    />
+                  )}
+
+                  {showModal && (
+                    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+                      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+                        <h2 className="text-xl font-semibold mb-4">
+                          Flag this recipe
+                        </h2>
+                        <textarea
+                          className="w-full border rounded-md p-2 mb-4"
+                          placeholder="Enter your reason..."
+                          rows={4}
+                          value={message}
+                          onChange={(e) => setMessage(e.target.value)}
+                        />
+                        <div className="flex justify-end gap-3">
+                          <button
+                            className="bg-gray-300 hover:bg-gray-400 text-black py-2 px-4 rounded-md"
+                            onClick={() => setShowModal(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                            onClick={handleFlagRecipe}
+                            disabled={!message.trim()}
+                          >
+                            Submit
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <p className="flex gap-2 items-center font-semibold">

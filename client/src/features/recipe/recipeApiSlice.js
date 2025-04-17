@@ -105,6 +105,17 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: ["recipes"],
     }),
+    flagRecipe: builder.mutation({
+      query: (args) => {
+        const { recipeId, message } = args;
+        return {
+          url: `/recipes/flag/${recipeId}`,
+          method: "PUT",
+          body: { message },
+        };
+      },
+      invalidatesTags: ["recipes"],
+    }),
     deleteCommentRecipe: builder.mutation({
       query: (args) => {
         const { _id, commentId } = args;
@@ -113,6 +124,17 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
         );
         return {
           url: `/recipes/comment/${_id}/${commentId}`,
+          method: "DELETE",
+        };
+      },
+      invalidatesTags: ["recipes"],
+    }),
+    deleteFlagRecipe: builder.mutation({
+      query: (args) => {
+        const { _id, flagId } = args;
+        console.log("deleting flag id: " + flagId + ", for recipe: " + _id);
+        return {
+          url: `/recipes/flag/${_id}/${flagId}`,
           method: "DELETE",
         };
       },
@@ -145,4 +167,6 @@ export const {
   useDeleteCommentRecipeMutation,
   useToggleFavoriteMutation,
   useGetFavoriteRecipesQuery,
+  useFlagRecipeMutation,
+  useDeleteFlagRecipeMutation,
 } = recipeApiSlice;

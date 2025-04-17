@@ -5,7 +5,11 @@ import { motion } from "framer-motion";
 import { BiHomeAlt2 } from "react-icons/bi";
 import { BsFileEarmarkText, BsCart4 } from "react-icons/bs";
 import { HiOutlineUsers, HiOutlineLogout } from "react-icons/hi";
-import { IoRestaurantOutline, IoFolderOutline } from "react-icons/io5";
+import {
+  IoRestaurantOutline,
+  IoFolderOutline,
+  IoFlagOutline,
+} from "react-icons/io5";
 import { Logo } from "..";
 import { Avatar as MuiAvatar } from "@mui/material";
 import useAuth from "../../hooks/useAuth";

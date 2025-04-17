@@ -54,6 +54,21 @@ const schema = mongoose.Schema(
         },
       },
     ],
+    flags: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        message: {
+          type: String,
+        },
+        date: {
+          type: Date,
+          default: Date.now(),
+        },
+      },
+    ],
     status: { type: String, default: "Published" },
   },
   {
