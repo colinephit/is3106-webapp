@@ -29,7 +29,7 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange, count }) => {
         ingredients: [],
         category: "",
         status: "Published",
-        limit: 5,
+        limit: 6,
         skip: 0,
         currentPage: 1,
     });
@@ -405,17 +405,21 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange, count }) => {
                 </div>
             </div>
             <div className="flex flex-col gap-8 w-full">
-                {filterUsed && (
-                    <div className="w-full text-center mt-6">
+            {filterUsed && (
+                <div className="w-full text-center mt-6">
+                    {count > 0 ? (
+                        <>
+                            <p className="text-black font-bold text-2xl">
+                                Found {count} recipe{count > 1 ? "s" : ""} matching your criteria!
+                            </p>
+                        </>
+                    ) : (
                         <p className="text-black font-bold text-2xl">
-                            {displayData?.length > 0
-                                ? `You can make ${displayData.length} recipe${
-                                      displayData.length > 1 ? "s" : ""
-                                  }!`
-                                : "No matching recipes found."}
+                            No matching recipes found.
                         </p>
-                    </div>
-                )}
+                    )}
+                </div>
+            )}
 
                 <h3 className="font-bold text-xl w-full">Recent {type}s</h3>
                 {displayData?.length ? (
