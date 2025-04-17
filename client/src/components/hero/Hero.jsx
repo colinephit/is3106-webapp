@@ -18,15 +18,6 @@ const Hero = () => {
           restaurants, and engaging food discussions. Explore, share, and
           connect over the joy of cooking and dining.
         </p>
-        <Link to={"/recipe"}>
-          <Button
-            content={"Explore Recipes"}
-            customCss={
-              "mt-4 md:mt-8 md:py-3 md:px-9 md:text-lg max-w-max rounded-full"
-            }
-            icon={<GiKnifeFork />}
-          />
-        </Link>
       </div>
       <div className="basis-1/2 bg-hero bg-no-repeat bg-cover bg-center rounded-xl"></div>
     </section>
