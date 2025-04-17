@@ -20,6 +20,7 @@
     "axios": "^1.4.0",
     "framer-motion": "^10.15.0",
     "jwt-decode": "^3.1.2",
+    "lodash.isequal": "^4.5.0",
     "lottie-react": "^2.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

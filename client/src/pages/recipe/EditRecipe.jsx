@@ -15,6 +15,7 @@ import {
 } from "../../features/ingredient/ingredientApiSlice";
 import { useGetCategoriesQuery } from "../../features/category/categoryApiSlice";
 import { useParams } from "react-router-dom";
+import isEqual from "lodash.isequal";
 
 const EditRecipe = () => {
     const { id } = useParams();
@@ -31,6 +32,7 @@ const EditRecipe = () => {
         ingredients: data?.ingredients || [],
         categories: data?.categories || [],
         instructions: data?.instructions || [],
+        status: data?.status || "Published",
     });
 
     const [progress, setProgress] = useState(0);
@@ -103,6 +105,7 @@ const EditRecipe = () => {
                         categoryName: cat.categoryName,
                     })) || [],
                 instructions: data.instructions || [],
+                status: data?.status || "Published",
             });
         }
     }, [data]); // Depend only on `data`
@@ -216,6 +219,26 @@ const EditRecipe = () => {
             toast.error(error.data);
             console.error(error);
         }
+    };
+
+    const changesMake = () => {
+        return !(
+            formDetails.recipeName === data?.recipeName &&
+            formDetails.image === data?.image &&
+            formDetails.description === data?.description &&
+            formDetails.difficultyLevel === data?.difficultyLevel &&
+            formDetails.cookingTime === data?.cookingTime &&
+            isEqual(
+                formDetails.ingredients.map((c) => c.ingredientName),
+                data?.ingredients.map((c) => c.ingredientName)
+            ) &&
+            isEqual(
+                formDetails.categories.map((c) => c.categoryName),
+                data?.categories.map((c) => c.categoryName)
+            ) &&
+            isEqual(formDetails.instructions, data?.instructions) &&
+            formDetails.status === data?.status
+        );
     };
 
     return (
@@ -557,6 +580,7 @@ const EditRecipe = () => {
                             type={"submit"}
                             customCss={"rounded px-4 py-1 max-w-max"}
                             loading={isLoading}
+                            disabled={!changesMake()}
                         />
                     </div>
                     <hr className="block md:hidden mt-6" />
