@@ -38,10 +38,11 @@ const MyRecipes = () => {
             "Welcome to your dedicated space where your imagination takes the lead."
           }
           type={"recipe"}
-          data={data}
+          data={data?.recipes || []}
           filter={filter}
           onFilterChange={handleFilterChange}
           showFilterMessage={false}
+          count={data?.totalCount || 0}
         />
       )}
     </>

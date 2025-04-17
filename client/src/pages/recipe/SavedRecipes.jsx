@@ -27,8 +27,7 @@ const SavedRecipes = () => {
 
     const filteredRecipes = useMemo(() => {
         if (!allRecipes) return [];
-
-        return allRecipes;
+        return allRecipes.recipes;
     }, [allRecipes]);
 
     if (isLoading) return <ComponentLoading />;
@@ -45,6 +44,7 @@ const SavedRecipes = () => {
                 filter={filter}
                 onFilterChange={handleFilterChange}
                 showFilterMessage={false}
+                count={allRecipes?.totalCount || 0}
             />
         </div>
     );

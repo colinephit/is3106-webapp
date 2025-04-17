@@ -294,7 +294,12 @@ const getFavouriteRecipes = async (req, res, next) => {
             },
         });
     } else {
-        res.status(200).send([]);
+        // Return empty response with correct format
+        res.status(200).send({
+            recipes: [],
+            totalCount: 0
+        });
+        return;
     }
 
     if (!status || status.toUpperCase() !== "ALL") {
@@ -420,7 +425,10 @@ const getFavouriteRecipes = async (req, res, next) => {
 
     try {
         const recipes = await Recipe.aggregate(aggregationPipeline);
-        res.status(200).send(recipes);
+        res.status(200).send({
+            recipes: recipes,
+            totalCount: recipes.length
+        });
     } catch (error) {
         next(error);
     }
@@ -913,7 +921,7 @@ const toggleFavoriteRecipe = async (req, res, next) => {
 
 const addRecentlyViewed = async (req, res, next) => {
     try {
-        const userId = req.user; 
+        const userId = req.user;
         const { recipeId } = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(recipeId)) {
