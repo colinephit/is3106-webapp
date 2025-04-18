@@ -14,11 +14,12 @@ import {
   useGetIngredientsQuery,
 } from "../../features/ingredient/ingredientApiSlice";
 import { useGetCategoriesQuery } from "../../features/category/categoryApiSlice";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import isEqual from "lodash.isequal";
 
 const EditRecipe = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const { data, ...rest } = useGetRecipeQuery(id);
   const [updateRecipe, { isLoading }] = useUpdateRecipeMutation();
@@ -269,13 +270,24 @@ const EditRecipe = () => {
     }
 
     try {
-      const normalizedIngredients = formDetails.ingredients.map((ing) => ({
-        ingredient: {
-          _id: ing._id,
-          ingredientName: ing.ingredientName,
-        },
-        quantity: ing.quantity,
-      }));
+      const normalizedIngredients = formDetails.ingredients.map((ing) => {
+        if (ing.ingredient?._id) {
+          return {
+            ingredient: ing.ingredient._id,
+            quantity: ing.quantity,
+          };
+        } else if (ing._id) {
+          return {
+            ingredient: ing._id,
+            quantity: ing.quantity,
+          };
+        } else {
+          console.error("Ingredient object missing _id:", ing);
+          toast.error("Error processing ingredients");
+          return null;
+        }
+      }).filter(Boolean);
+
       const recipe = await toast.promise(
         updateRecipe({
           ...formDetails,
@@ -289,6 +301,7 @@ const EditRecipe = () => {
         }
       );
       console.log(recipe);
+      navigate(`/recipe/${id}`);
     } catch (error) {
       toast.error(error.data);
       console.error(error);
