@@ -2,18 +2,6 @@
 <h1 align="center">RecipeShare</h1>
 
 <div align="center">
-  <br>
-  <img src="https://img.shields.io/github/repo-size/Avinash905/Recipen?style=for-the-badge" />
-  <img src="https://img.shields.io/github/issues/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/issues-closed-raw/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/last-commit/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/issues-pr/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/issues-pr-closed-raw/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/forks/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/stars/Avinash905/Recipen?style=for-the-badge" />
-    <img src="https://img.shields.io/github/contributors-anon/Avinash905/Recipen?style=for-the-badge" />
-  </div>
-  <br>
 
 <h3>📝 Description :</h3>
 Welcome to RecipeShare – a recipe website for food enthusiasts to explore, create, and share their culinary experiences. Indulge in a community-driven platform where food enthusiasts share their cherished recipes and captivating food blogs. Subscribe to the pro version to share your own recipes and to unlock a realm of taste, culture, and creativity.
