@@ -996,7 +996,13 @@ const getRecentlyViewed = async (req, res, next) => {
   try {
     const userId = req.user;
 
-    const user = await User.findById(userId).populate('recentlyViewed');
+    const user = await User.findById(userId).populate({
+      path: 'recentlyViewed',
+      populate: {
+        path: 'author',
+        select: 'firstName' 
+      }
+    });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
