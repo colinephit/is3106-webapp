@@ -20,7 +20,7 @@ const MyRecipes = () => {
     sort: "1",
     ingredients: [],
     category: "",
-    status: "Published",
+    status: "ALL",
   });
 
   const handleFilterChange = (updatedFilter) => {

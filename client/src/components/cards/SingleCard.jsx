@@ -54,9 +54,9 @@ const SingleCard = ({ singleData, type }) => {
   };
 
   return (
-  <div className="flex flex-col gap-1 justify-between shadow hover:shadow-lg rounded h-full">
-  {/* Card Top */}
-      <div className="flex flex-col justify-between h-full ">
+    <div className="flex flex-col gap-1 justify-between shadow hover:shadow-lg rounded h-full">
+      {/* Card Top */}
+      <div className="flex flex-col justify-between h-full">
         <div className="relative h-full w-full">
           {/* Only for singleData */}
           {/* Favorite & share button */}
@@ -74,18 +74,22 @@ const SingleCard = ({ singleData, type }) => {
                 />
               )}
               <ShareButton
-                url={`${import.meta.env.VITE_BASE_URL}/recipe/${
-                  singleData?._id
-                }`}
+                url={`${import.meta.env.VITE_BASE_URL}/recipe/${singleData?._id
+                  }`}
               />
             </div>
           )}
-          {/* Card image */}
-          <img
-            src={singleData?.image}
-            alt={singleData?.recipeName}
-            className="w-full object-cover object-center rounded-t"
-          />
+          {/* Card image container */}
+          <div className="relative w-full aspect-[4/3] overflow-hidden rounded-t">
+            <img
+              src={singleData?.image}
+              alt={singleData?.recipeName}
+              className="absolute inset-0 w-full h-full object-cover object-center"
+              onError={(e) => {
+                e.target.src = "https://via.placeholder.com/400x300?text=No+Image";
+              }}
+            />
+          </div>
           {/* Overlay */}
           <div className="absolute bottom-0 left-0 w-full backdrop-blur-sm bg-[#fffcf5d3] p-4 flex justify-between">
             {/* Author */}
@@ -93,18 +97,16 @@ const SingleCard = ({ singleData, type }) => {
             {/* Status Badge */}
             {singleData?.status && (
               <span
-                className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                  singleData.status === "Published"
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${singleData.status === "Published"
                     ? "bg-green-200 text-green-800"
                     : singleData.status === "Draft"
-                    ? "bg-yellow-200 text-yellow-800"
-                    : "bg-gray-200 text-gray-800" // Default color
-                }`}
+                      ? "bg-yellow-200 text-yellow-800"
+                      : "bg-gray-200 text-gray-800" // Default color
+                  }`}
               >
                 {singleData.status}
               </span>
             )}
-            {/* no date in schema? <span className="text-sm">{formattedDate}</span> */}
           </div>
         </div>
         {/* Card Bottom details */}

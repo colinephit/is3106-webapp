@@ -30,13 +30,14 @@ const HomeCategories = ({ title, data, isLoading, filterUsed, showFilterMessage 
           <hr className="w-full" />
 
           {data?.length ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 w-full">
               {data.slice(0, 4).map((singleData) => (
-                <SingleCard
-                  key={singleData._id}
-                  singleData={singleData}
-                  type={title}
-                />
+                <div key={singleData._id} className="w-full">
+                  <SingleCard
+                    singleData={singleData}
+                    type={title}
+                  />
+                </div>
               ))}
             </div>
           ) : (
@@ -47,6 +48,5 @@ const HomeCategories = ({ title, data, isLoading, filterUsed, showFilterMessage 
     </>
   );
 };
-
 
 export default HomeCategories;

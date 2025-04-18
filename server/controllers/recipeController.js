@@ -482,7 +482,10 @@ const getOwnRecipes = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .populate("author", "firstName lastName")
       .populate("ratings", "rating");
-    res.status(200).send(recipes);
+    res.status(200).send({
+      recipes: recipes,
+      totalCount: recipes.length,
+    });
   } catch (error) {
     next(error);
   }
