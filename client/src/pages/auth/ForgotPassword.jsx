@@ -3,10 +3,12 @@ import { Button, Input, Logo } from "../../components";
 import { IoMailOutline } from "react-icons/io5";
 import { useForgotPasswordMutation } from "../../features/auth/authApiSlice";
 import { toast } from "react-toastify";
+import { useNavigate } from 'react-router-dom';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [forgotPassword, { isLoading }] = useForgotPasswordMutation();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,7 +21,16 @@ const ForgotPassword = () => {
       setEmail("");
     } catch (err) {
       console.error(err);
+      if (err?.data?.message) {
+        toast.error(err.data.message);
+      } else {
+        toast.error("Failed to send reset link");
+      }
     }
+  };
+
+  const handleCancel = () => {
+    navigate('/auth/signin');
   };
 
   return (
@@ -44,6 +55,11 @@ const ForgotPassword = () => {
             customCss="rounded-lg"
           />
         </form>
+        <Button
+          content="Cancel"
+          handleClick={handleCancel}
+          customCss="mt-4 rounded-lg bg-gray-300 text-gray-700 hover:bg-gray-400"
+        />
       </div>
     </section>
   );

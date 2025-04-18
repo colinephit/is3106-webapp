@@ -150,7 +150,7 @@ const forgotPassword = async (req, res) => {
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return res.status(404).json({ message: "Email is not a registered account" });
 
     const resetToken = crypto.randomBytes(32).toString("hex");
     user.resetToken = resetToken;
