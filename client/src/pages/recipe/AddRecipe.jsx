@@ -109,7 +109,8 @@ const AddRecipe = () => {
 
   const handleAddIngredient = async () => {
     if (!ingredientQuery) return toast.error("Ingredient cannot be empty");
-    if (!ingredientQuantity.amount) return toast.error("Amount cannot be empty");
+    if (!ingredientQuantity.amount)
+      return toast.error("Amount cannot be empty");
     if (!ingredientQuantity.unit) return toast.error("Unit cannot be empty");
 
     // Check if the ingredient exists in suggestions
@@ -473,6 +474,7 @@ const AddRecipe = () => {
                 <div className="flex gap-2">
                   <input
                     type="number"
+                    min={0}
                     value={ingredientQuantity.amount}
                     onChange={(e) =>
                       setIngredientQuantity({
@@ -497,27 +499,40 @@ const AddRecipe = () => {
                   />
                 </div>
                 <div className="relative flex gap-1 justify-between">
-                  <input
-                    type="text"
-                    onChange={(e) => setIngredientQuery(e.target.value)}
-                    value={ingredientQuery}
-                    placeholder="Search or add an ingredient"
-                    className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
-                  />
-
-                  {ingredientSuggestions.length > 0 && (
-                    <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
-                      {ingredientSuggestions.map((ing) => (
-                        <li
-                          key={ing._id}
-                          onClick={() => handleAddIngredientClick(ing)}
-                          className="p-2 cursor-pointer hover:bg-gray-200"
-                        >
-                          {ing.ingredientName}
-                        </li>
-                      ))}
-                    </ul>
+                  {!ingredientQuantity.amount || !ingredientQuantity.unit ? (
+                    <div
+                      onClick={() =>
+                        toast.error("Please input quantity and unit first")
+                      }
+                      className="p-1.5 border bg-gray-100 rounded w-full text-gray-400 cursor-not-allowed"
+                    >
+                      Search or add an ingredient
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      onChange={(e) => setIngredientQuery(e.target.value)}
+                      value={ingredientQuery}
+                      placeholder="Search or add an ingredient"
+                      className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
+                    />
                   )}
+
+                  {ingredientSuggestions.length > 0 &&
+                    ingredientQuantity.amount &&
+                    ingredientQuantity.unit && (
+                      <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
+                        {ingredientSuggestions.map((ing) => (
+                          <li
+                            key={ing._id}
+                            onClick={() => handleAddIngredientClick(ing)}
+                            className="p-2 cursor-pointer hover:bg-gray-200"
+                          >
+                            {ing.ingredientName}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                 </div>
                 <Button
                   content={"Add"}
@@ -532,7 +547,8 @@ const AddRecipe = () => {
                     key={ele.ingredient._id}
                   >
                     <span>
-                      {ele.quantity.amount} {ele.quantity.unit} {ele.ingredient.ingredientName}
+                      {ele.quantity.amount} {ele.quantity.unit}{" "}
+                      {ele.ingredient.ingredientName}
                     </span>
                     <RxCross2
                       className="cursor-pointer"
