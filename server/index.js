@@ -31,7 +31,6 @@ app.use("/auth", require("./routes/authRoutes"));
 app.use("/users", require("./routes/userRoutes"));
 app.use("/roles", require("./routes/roleRoutes"));
 app.use("/recipes", require("./routes/recipeRoutes"));
-app.use("/stripe", require("./routes/subscriptionRoutes"));
 app.use("/upload", require("./routes/imageRoutes"));
 app.use("/ingredient", require("./routes/ingredientRoutes"));
 app.use("/category", require("./routes/categoryRoutes"));

@@ -12,8 +12,6 @@ import SingleCard from "./cards/SingleCard";
 import AllCards from "./cards/AllCards";
 import Comment from "./comment/Comment";
 import HomeCategories from "./homeCategories/HomeCategories";
-import Subscribe from "./subscribe/Subscribe";
-import SubscribeCard from "./cards/SubscribeCard";
 import Sidebar from "./dashboard/Sidebar";
 import Table from "./dashboard/Table";
 import Avatar from "./avatar/Avatar";
@@ -37,8 +35,6 @@ export {
   AllCards,
   Comment,
   HomeCategories,
-  Subscribe,
-  SubscribeCard,
   Sidebar,
   Table,
   Avatar,
