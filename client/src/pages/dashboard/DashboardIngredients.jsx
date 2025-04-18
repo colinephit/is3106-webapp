@@ -40,7 +40,8 @@ const DashboardIngredients = () => {
         counts[ingredient._id.toString()] = 0; // Convert ObjectId to string
       });
 
-      recipesData.forEach((recipe) => {
+      console.log(recipesData);
+      recipesData.data.forEach((recipe) => {
         if (recipe.ingredients) {
           recipe.ingredients.forEach((ingredientId) => {
             counts[ingredientId]++;

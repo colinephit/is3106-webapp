@@ -63,10 +63,13 @@ const DashboardRecipes = () => {
   const { data, isLoading, refetch } = useGetAllRecipesQuery();
   console.log(data);
   const dispatch = useDispatch();
-  const updatedData = data?.map((item, index) => ({
-    ...item,
-    id: index + 1,
-  }));
+  const updatedData = data?.data
+    ?.slice() // clone the array to avoid mutating original
+    .sort((a, b) => a.recipeName.localeCompare(b.recipeName)) // sort by recipe name
+    .map((item, index) => ({
+      ...item,
+      id: index + 1,
+    }));
   const [deleteRecipe] = useDeleteRecipeMutation();
   const [deleteComment] = useDeleteCommentRecipeMutation();
   const [deleteFlag] = useDeleteFlagRecipeMutation();
