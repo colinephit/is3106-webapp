@@ -98,10 +98,10 @@ const SingleCard = ({ singleData, type }) => {
             {singleData?.status && (
               <span
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${singleData.status === "Published"
-                    ? "bg-green-200 text-green-800"
-                    : singleData.status === "Draft"
-                      ? "bg-yellow-200 text-yellow-800"
-                      : "bg-gray-200 text-gray-800" // Default color
+                  ? "bg-green-200 text-green-800"
+                  : singleData.status === "Draft"
+                    ? "bg-yellow-200 text-yellow-800"
+                    : "bg-gray-200 text-gray-800" // Default color
                   }`}
               >
                 {singleData.status}

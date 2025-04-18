@@ -17,10 +17,15 @@ const schema = mongoose.Schema(
     difficultyLevel: { type: Number, required: false },
     ingredients: [
       {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Ingredient",
-        ingredientName: String,
-        required: true,
+        ingredient: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Ingredient",
+          required: true,
+        },
+        quantity: {
+          amount: { type: Number, required: true },
+          unit: { type: String, required: true },
+        },
       },
     ],
     categories: [

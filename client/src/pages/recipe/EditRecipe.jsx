@@ -55,6 +55,11 @@ const EditRecipe = () => {
             skip: ingredientQuery.length < 2, // Don't fetch if the query length is less than 2
         });
 
+    const [ingredientQuantity, setIngredientQuantity] = useState({
+        amount: "",
+        unit: "",
+    });
+
     useEffect(() => {
         //console.log("Ingredients fetched:", ingredients);
         if (ingredientQuery.length < 2) {
@@ -94,11 +99,11 @@ const EditRecipe = () => {
                 description: data.description || "",
                 difficultyLevel: data.difficultyLevel || "",
                 cookingTime: data.cookingTime || "",
-                ingredients:
-                    data.ingredients.map((ing) => ({
-                        _id: ing._id,
-                        ingredientName: ing.ingredientName,
-                    })) || [],
+                ingredients: data.ingredients.map((ing) => ({
+                    _id: ing.ingredient?._id || ing._id,
+                    ingredientName: ing.ingredient?.ingredientName || ing.ingredientName,
+                    quantity: ing.quantity || { amount: "", unit: "" },
+                })) || [],
                 categories:
                     data.categories.map((cat) => ({
                         _id: cat._id,
@@ -143,12 +148,20 @@ const EditRecipe = () => {
             ...prev,
             ingredients: [
                 ...prev.ingredients,
-                { _id: ing._id, ingredientName: ing.ingredientName },
+                {
+                    _id: ing._id,
+                    ingredientName: ing.ingredientName,
+                    quantity: {
+                        amount: Number(ingredientQuantity.amount),
+                        unit: ingredientQuantity.unit,
+                    },
+                },
             ],
         }));
         setIngredientQuery("");
-        //console.log("Form Details after ingredient add:", formDetails);
+        setIngredientQuantity({ amount: "", unit: "" });
     };
+
 
     const handleAddCategoryClick = (cat) => {
         setFormDetails((prev) => ({
@@ -207,8 +220,19 @@ const EditRecipe = () => {
         }
 
         try {
+            const normalizedIngredients = formDetails.ingredients.map((ing) => ({
+                ingredient: {
+                    _id: ing._id,
+                    ingredientName: ing.ingredientName,
+                },
+                quantity: ing.quantity,
+            }));
             const recipe = await toast.promise(
-                updateRecipe({ ...formDetails, recipeId: id }).unwrap(),
+                updateRecipe({
+                    ...formDetails,
+                    ingredients: normalizedIngredients,  // override with nested structure
+                    recipeId: id,
+                }).unwrap(),
                 {
                     pending: "Please wait...",
                     success: "Recipe updated successfully",
@@ -451,7 +475,32 @@ const EditRecipe = () => {
                             </label>
                             <div className="flex flex-col basis-1/2">
                                 <div className="relative flex flex-col gap-2">
-                                    {/* Input field for searching or adding ingredients */}
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="number"
+                                            value={ingredientQuantity.amount}
+                                            onChange={(e) =>
+                                                setIngredientQuantity({
+                                                    ...ingredientQuantity,
+                                                    amount: e.target.value,
+                                                })
+                                            }
+                                            placeholder="Amount"
+                                            className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-1/3"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={ingredientQuantity.unit}
+                                            onChange={(e) =>
+                                                setIngredientQuantity({
+                                                    ...ingredientQuantity,
+                                                    unit: e.target.value,
+                                                })
+                                            }
+                                            placeholder="Unit (e.g., g, ml, cups)"
+                                            className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-2/3"
+                                        />
+                                    </div>
                                     <div className="relative flex gap-1 justify-between">
                                         <input
                                             type="text"
@@ -459,13 +508,12 @@ const EditRecipe = () => {
                                                 setIngredientQuery(
                                                     e.target.value
                                                 )
-                                            } // Update ingredient query state
+                                            }
                                             value={ingredientQuery}
                                             placeholder="Search or add an ingredient"
                                             className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-full"
                                         />
 
-                                        {/* Ingredient suggestions dropdown */}
                                         {ingredientSuggestions.length > 0 && (
                                             <ul className="absolute left-0 w-full bg-white border rounded shadow-md top-full max-h-40 overflow-auto z-50">
                                                 {ingredientSuggestions.map(
@@ -476,7 +524,7 @@ const EditRecipe = () => {
                                                                 handleAddIngredientClick(
                                                                     ing
                                                                 )
-                                                            } // Add ingredient on click
+                                                            }
                                                             className="p-2 cursor-pointer hover:bg-gray-200"
                                                         >
                                                             {ing.ingredientName}
@@ -486,30 +534,22 @@ const EditRecipe = () => {
                                             </ul>
                                         )}
                                     </div>
-
-                                    {/* Add button for ingredients not yet in database */}
-                                    <Button
-                                        content={"Add"}
-                                        customCss={"rounded text-sm px-4 py-1"}
-                                        handleClick={handleAddIngredient} // Handle adding ingredient when clicked
-                                    />
                                 </div>
 
-                                {/* Display added ingredients */}
                                 <ul className="flex flex-col gap-2">
                                     {formDetails.ingredients.map(
                                         (ele, index) => (
                                             <li
                                                 className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                                                key={ele._id} // Unique key for each ingredient
+                                                key={ele._id}
                                             >
-                                                {ele.ingredientName}{" "}
-                                                {/* Display ingredient name */}
+                                                <span>
+                                                    {ele.quantity?.amount} {ele.quantity?.unit} of{" "}
+                                                    {ele.ingredientName || ele.ingredient?.ingredientName || "Unnamed Ingredient"}
+                                                </span>
                                                 <RxCross2
                                                     className="cursor-pointer"
-                                                    onClick={() =>
-                                                        removeIngredient(index)
-                                                    } // Remove ingredient on click
+                                                    onClick={() => removeIngredient(index)}
                                                 />
                                             </li>
                                         )

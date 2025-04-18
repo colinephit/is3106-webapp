@@ -47,14 +47,17 @@ const AddRecipe = () => {
   const [ingredientQuery, setIngredientQuery] = useState("");
   const [ingredientSuggestions, setIngredientSuggestions] = useState([]);
   const [addIngredientToDB] = useAddIngredientMutation();
+  const [ingredientQuantity, setIngredientQuantity] = useState({
+    amount: "",
+    unit: "",
+  });
 
   const { data: ingredients, isLoading: isLoadingIngredients } =
     useGetIngredientsQuery(ingredientQuery, {
-      skip: ingredientQuery.length < 2, // Don't fetch if the query length is less than 2
+      skip: ingredientQuery.length < 2,
     });
 
   useEffect(() => {
-    console.log("Ingredients fetched:", ingredients);
     if (ingredientQuery.length < 2) {
       setIngredientSuggestions([]);
       return;
@@ -70,11 +73,10 @@ const AddRecipe = () => {
 
   const { data: categories, isLoading: isLoadingCategories } =
     useGetCategoriesQuery(categoryQuery, {
-      skip: categoryQuery.length < 2, // Don't fetch if the query length is less than 2
+      skip: categoryQuery.length < 2,
     });
 
   useEffect(() => {
-    console.log("Categories fetched:", categories);
     if (categoryQuery.length < 2) {
       setCategorySuggestions([]);
       return;
@@ -85,6 +87,8 @@ const AddRecipe = () => {
     }
   }, [categories, categoryQuery]);
 
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
   const handleFocus = (e) => {
     setFocused({ ...focused, [e.target.id]: true });
   };
@@ -93,7 +97,7 @@ const AddRecipe = () => {
     if (e.target.id === "image") {
       uploadImage(e, setProgress, setFormDetails, formDetails);
     } else if (e.target.id === "difficultyLevel") {
-      let intValue = parseInt(e.target.value, 10); // Convert to integer
+      let intValue = parseInt(e.target.value, 10);
       if (isNaN(intValue) || intValue < 1) intValue = 1;
       if (intValue > 5) intValue = 5;
 
@@ -105,6 +109,8 @@ const AddRecipe = () => {
 
   const handleAddIngredient = async () => {
     if (!ingredientQuery) return toast.error("Ingredient cannot be empty");
+    if (!ingredientQuantity.amount) return toast.error("Amount cannot be empty");
+    if (!ingredientQuantity.unit) return toast.error("Unit cannot be empty");
 
     // Check if the ingredient exists in suggestions
     const existingIngredient = ingredientSuggestions.find(
@@ -112,47 +118,51 @@ const AddRecipe = () => {
     );
 
     if (existingIngredient) {
-      //logging
-      console.log("Existing ingredient:", existingIngredient);
-      // If exists, add only the ID
       setFormDetails((prev) => ({
         ...prev,
         ingredients: [
           ...prev.ingredients,
           {
-            _id: existingIngredient._id,
-            name: existingIngredient.ingredientName,
+            ingredient: {
+              _id: existingIngredient._id,
+              ingredientName: existingIngredient.ingredientName,
+            },
+            quantity: {
+              amount: Number(ingredientQuantity.amount),
+              unit: ingredientQuantity.unit,
+            },
           },
-        ], // Store ID only
+        ],
       }));
     } else {
-      // If doesn't exist, add to DB first
       try {
         const newIngredient = await addIngredientToDB({
           ingredientName: ingredientQuery,
         }).unwrap();
-        //logging
-        console.log("New ingredient:", newIngredient);
         setFormDetails((prev) => ({
           ...prev,
           ingredients: [
             ...prev.ingredients,
             {
-              _id: newIngredient.ingredient._id,
-              name: newIngredient.ingredient.ingredientName,
+              ingredient: {
+                _id: newIngredient.ingredient._id,
+                ingredientName: newIngredient.ingredient.ingredientName,
+              },
+              quantity: {
+                amount: Number(ingredientQuantity.amount),
+                unit: ingredientQuantity.unit,
+              },
             },
-          ], // Store new ID
+          ],
         }));
-        //logging
-        console.log("Form details:", formDetails);
-
         toast.success("Ingredient added successfully");
       } catch (error) {
         toast.error("Failed to add ingredient");
       }
     }
 
-    setIngredientQuery(""); // Reset input field
+    setIngredientQuery("");
+    setIngredientQuantity({ amount: "", unit: "" });
   };
 
   const handleAddIngredientClick = (ing) => {
@@ -160,17 +170,28 @@ const AddRecipe = () => {
       ...prev,
       ingredients: [
         ...prev.ingredients,
-        { _id: ing._id, name: ing.ingredientName },
+        {
+          ingredient: {
+            _id: ing._id,
+            ingredientName: ing.ingredientName,
+          },
+          quantity: {
+            amount: Number(ingredientQuantity.amount),
+            unit: ingredientQuantity.unit,
+          },
+        },
       ],
     }));
     setIngredientQuery("");
+    setIngredientQuantity({ amount: "", unit: "" });
   };
 
   const handleAddCategoryClick = (cat) => {
     setFormDetails((prev) => ({
       ...prev,
-      categories: [{ _id: cat._id, name: cat.categoryName }],
+      categories: [cat._id],
     }));
+    setSelectedCategory(cat);
     setCategoryQuery("");
   };
 
@@ -332,15 +353,18 @@ const AddRecipe = () => {
                 </div>
 
                 <ul className="flex flex-col gap-2">
-                  {formDetails.categories.map((ele, index) => (
+                  {formDetails.categories.map((catId, index) => (
                     <li
                       className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                      key={ele._id}
+                      key={catId}
                     >
-                      {ele.name}
+                      {selectedCategory?.categoryName || "Select a category"}
                       <RxCross2
                         className="cursor-pointer"
-                        onClick={() => removeCategory(index)}
+                        onClick={() => {
+                          removeCategory(index);
+                          setSelectedCategory(null);
+                        }}
                       />
                     </li>
                   ))}
@@ -377,7 +401,7 @@ const AddRecipe = () => {
               htmlFor="difficultyLevel"
               className="text-sm font-semibold mb-3 basis-1/2"
             >
-              Difficulty Level
+              Difficulty Level (1 to 5)
             </label>
             <div className="flex flex-col basis-1/2">
               <input
@@ -389,17 +413,19 @@ const AddRecipe = () => {
                 name="difficultyLevel"
                 min="1"
                 max="5"
+                step="1"
                 onBlur={handleFocus}
+                focused={focused.difficultyLevel.toString()}
                 aria-required="true"
                 aria-describedby="difficultyLevel-error"
-                placeholder="Enter difficulty level (1-5)"
+                placeholder="Select difficulty level (1-5)"
                 className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary"
               />
               <span
                 id="difficultyLevel-error"
                 className="hidden text-red-500 pl-2 text-sm mt-1"
               >
-                Should not include letters or special characters
+                Please select a difficulty level between 1 and 5
               </span>
             </div>
           </div>
@@ -443,7 +469,33 @@ const AddRecipe = () => {
               Add ingredients
             </label>
             <div className="flex flex-col basis-1/2">
-              <div className="relative flex items-center gap-2">
+              <div className="relative flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    value={ingredientQuantity.amount}
+                    onChange={(e) =>
+                      setIngredientQuantity({
+                        ...ingredientQuantity,
+                        amount: e.target.value,
+                      })
+                    }
+                    placeholder="Amount"
+                    className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-1/3"
+                  />
+                  <input
+                    type="text"
+                    value={ingredientQuantity.unit}
+                    onChange={(e) =>
+                      setIngredientQuantity({
+                        ...ingredientQuantity,
+                        unit: e.target.value,
+                      })
+                    }
+                    placeholder="Unit (e.g., g, ml, cups)"
+                    className="p-1.5 border bg-gray-100 rounded focus:outline outline-primary w-2/3"
+                  />
+                </div>
                 <div className="relative flex gap-1 justify-between">
                   <input
                     type="text"
@@ -467,20 +519,21 @@ const AddRecipe = () => {
                     </ul>
                   )}
                 </div>
-                {/* Add button for ingredients not yet in database */}
                 <Button
                   content={"Add"}
                   customCss={"rounded text-sm px-4 py-1"}
                   handleClick={handleAddIngredient}
                 />
               </div>
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-2 mt-4">
                 {formDetails.ingredients.map((ele, index) => (
                   <li
                     className="flex justify-between items-center shadow hover:shadow-md rounded p-2 gap-2"
-                    key={ele._id}
+                    key={ele.ingredient._id}
                   >
-                    {ele.name}
+                    <span>
+                      {ele.quantity.amount} {ele.quantity.unit} {ele.ingredient.ingredientName}
+                    </span>
                     <RxCross2
                       className="cursor-pointer"
                       onClick={() => removeIngredient(index)}

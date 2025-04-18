@@ -262,13 +262,12 @@ const SingleRecipe = () => {
                 </h2>
                 {data?.status && (
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold max-sm:px-2 max-sm:py-1 max-sm:text-xs ${
-                      data.status === "Published"
-                        ? "bg-green-200 text-green-800"
-                        : data.status === "Draft"
+                    className={`px-3 py-1 rounded-full text-sm font-semibold max-sm:px-2 max-sm:py-1 max-sm:text-xs ${data.status === "Published"
+                      ? "bg-green-200 text-green-800"
+                      : data.status === "Draft"
                         ? "bg-yellow-200 text-yellow-800"
                         : "bg-gray-200 text-gray-800" // Default color
-                    }`}
+                      }`}
                   >
                     {data.status}
                   </span>
@@ -383,11 +382,10 @@ const SingleRecipe = () => {
                             Cancel
                           </button>
                           <button
-                            className={`py-2 px-4 rounded-md ${
-                              !message.trim() || !isUserLoggedIn
-                                ? "bg-gray-400 text-gray-500 cursor-not-allowed"
-                                : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"
-                            }`}
+                            className={`py-2 px-4 rounded-md ${!message.trim() || !isUserLoggedIn
+                              ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+                              : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                              }`}
                             onClick={handleFlagRecipe}
                             disabled={!message.trim() || !isUserLoggedIn}
                           >
@@ -437,14 +435,23 @@ const SingleRecipe = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="basis-1/3 flex flex-col gap-4 border-b-2 md:border-b-0 pb-4 md:pb-0 md:border-r-2 border-gray-200 items-center">
               <h3 className="font-bold text-2xl">Ingredients</h3>
-              {console.log("Ingredients Data:", data?.ingredients)}{" "}
-              {/* Log ingredients */}
+              {console.log("Full recipe data:", data)}
+              {console.log("Ingredients array:", data?.ingredients)}
               <ol className="flex flex-col gap-2 list-decimal ml-5">
-                {data?.ingredients?.map((ingredient, i) => (
-                  <li key={`ingredient-${i + 1}`}>
-                    {ingredient.ingredientName}
-                  </li>
-                ))}
+                {data?.ingredients?.map((ingredient, i) => {
+                  console.log("Individual ingredient:", ingredient);
+                  return (
+                    <li key={`ingredient-${i + 1}`}>
+                      {typeof ingredient === 'string' ? (
+                        ingredient
+                      ) : ingredient.quantity ? (
+                        `${ingredient.quantity.amount} ${ingredient.quantity.unit} of ${ingredient.ingredient?.ingredientName}`
+                      ) : (
+                        ingredient.ingredientName || ingredient.ingredient?.ingredientName || ingredient
+                      )}
+                    </li>
+                  );
+                })}
               </ol>
             </div>
             {/* Recipe Instructions */}
