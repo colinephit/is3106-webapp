@@ -1,24 +1,18 @@
 import { Suspense } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import {
-  AddBlog,
-  AddRecipe,
-  Blogs,
   Contact,
-  DashboardBlogs,
   DashboardRecipes,
   DashboardIngredients,
   DashboardCategories,
-  EditBlog,
   EditRecipe,
   Error,
   Home,
-  MyBlogs,
+  AddRecipe,
   MyRecipes,
   Profile,
   Recipe,
   SavedRecipes,
-  SingleBlog,
   SingleRecipe,
   Users,
   SignIn,
@@ -26,7 +20,7 @@ import {
   ForgotPassword,
   CheckoutSuccess,
   CheckoutFailure,
-  ResetPassword
+  ResetPassword,
 } from "./pages";
 import { ScrollToTop, PageLoading } from "./components";
 import { RootLayout, DashboardLayout } from "./layouts";
@@ -64,7 +58,6 @@ function App() {
               <Route path="/dashboard" element={<DashboardLayout />}>
                 <Route path="users" element={<Users />} />
                 <Route path="recipes" element={<DashboardRecipes />} />
-                <Route path="blogs" element={<DashboardBlogs />} />
                 <Route path="ingredients" element={<DashboardIngredients />} />
                 <Route path="categories" element={<DashboardCategories />} />
               </Route>
@@ -90,21 +83,6 @@ function App() {
                 </Route>
               </Route>
               <Route path="contact" element={<Contact />} />
-              <Route path="blog">
-                <Route index element={<Blogs />} />
-                <Route path=":id" element={<SingleBlog />} />
-                <Route
-                  element={
-                    <RequireAuth
-                      allowedRoles={[ROLES.BasicUser, ROLES.Admin]}
-                    />
-                  }
-                >
-                  <Route path="add" element={<AddBlog />} />
-                  <Route path="my-blogs" element={<MyBlogs />} />
-                  <Route path="edit/:id" element={<EditBlog />} />
-                </Route>
-              </Route>
               <Route
                 element={
                   <RequireAuth

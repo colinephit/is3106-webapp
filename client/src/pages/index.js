@@ -15,15 +15,8 @@ const AddRecipe = lazy(() => import("./recipe/AddRecipe"));
 const MyRecipes = lazy(() => import("./recipe/MyRecipes"));
 const EditRecipe = lazy(() => import("./recipe/EditRecipe"));
 
-const Blogs = lazy(() => import("./blogs/Blogs"));
-const AddBlog = lazy(() => import("./blogs/AddBlog"));
-const SingleBlog = lazy(() => import("./blogs/SingleBlog"));
-const MyBlogs = lazy(() => import("./blogs/MyBlogs"));
-const EditBlog = lazy(() => import("./blogs/EditBlog"));
-
 const Users = lazy(() => import("./dashboard/Users"));
 const DashboardRecipes = lazy(() => import("./dashboard/DashboardRecipes"));
-const DashboardBlogs = lazy(() => import("./dashboard/DashboardBlogs"));
 const DashboardIngredients = lazy(() =>
   import("./dashboard/DashboardIngredients")
 );
@@ -46,14 +39,8 @@ export {
   AddRecipe,
   MyRecipes,
   EditRecipe,
-  Blogs,
-  AddBlog,
-  SingleBlog,
-  MyBlogs,
-  EditBlog,
   Users,
   DashboardRecipes,
-  DashboardBlogs,
   DashboardIngredients,
   DashboardCategories,
   Error,
@@ -62,5 +49,5 @@ export {
   SignIn,
   SignUp,
   ForgotPassword,
-  ResetPassword
+  ResetPassword,
 };

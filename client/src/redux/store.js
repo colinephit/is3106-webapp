@@ -1,7 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./apiSlice";
 import authReducer from "../features/auth/authSlice";
-import blogReducer from "../features/blog/blogSlice";
 import recipeReducer from "../features/recipe/recipeSlice";
 import ingredientReducer from "../features/ingredient/ingredientSlice"; // Fixed spelling
 import categoryReducer from "../features/category/categorySlice";
@@ -21,7 +20,6 @@ const persistConfig = {
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
   auth: authReducer, // Persisted
-  blog: blogReducer,
   recipe: recipeReducer,
   ingredient: ingredientReducer, // Fixed spelling
   category: categoryReducer,
