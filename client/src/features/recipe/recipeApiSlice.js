@@ -118,12 +118,12 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     deleteCommentRecipe: builder.mutation({
       query: (args) => {
-        const { recipeId, commentId } = args;
+        const { _id, commentId } = args;
         console.log(
-          "deleting comment id: " + commentId + ", for recipe: " + recipeId
+          "deleting comment id: " + commentId + ", for recipe: " + _id
         );
         return {
-          url: `/recipes/comment/${recipeId}/${commentId}`,
+          url: `/recipes/comment/${_id}/${commentId}`,
           method: "DELETE",
         };
       },
@@ -151,14 +151,14 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     getRecentlyViewed: builder.query({
       query: () => ({
-        url: "/recipes/recent", 
+        url: "/recipes/recent",
         method: "GET",
       }),
-      providesTags: ["RecentlyViewed"], 
+      providesTags: ["RecentlyViewed"],
     }),
     addRecentlyViewed: builder.mutation({
       query: (recipeId) => ({
-        url: "/recipes/recent", 
+        url: "/recipes/recent",
         method: "POST",
         body: { recipeId },
       }),
@@ -166,7 +166,7 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     clearRecentlyViewed: builder.mutation({
       query: () => ({
-        url: "/recipes/recent", 
+        url: "/recipes/recent",
         method: "DELETE",
       }),
       invalidatesTags: ["RecentlyViewed"],

@@ -80,9 +80,7 @@ const getAllRecipes = async (req, res, next) => {
   }
 
   const aggregationPipeline = [
-    ...(matchConditions.length
-      ? [{ $match: { $and: matchConditions } }]
-      : []),
+    ...(matchConditions.length ? [{ $match: { $and: matchConditions } }] : []),
     {
       $addFields: {
         cookingTimeNum: { $toInt: "$cookingTime" },
@@ -157,10 +155,35 @@ const getAllRecipes = async (req, res, next) => {
           {
             $addFields: {
               "comments.user._id": "$comments.userDetails._id",
-              "comments.user.firstName":
-                "$comments.userDetails.firstName",
-              "comments.user.lastName":
-                "$comments.userDetails.lastName",
+              "comments.user.firstName": "$comments.userDetails.firstName",
+              "comments.user.lastName": "$comments.userDetails.lastName",
+            },
+          },
+          {
+            $unwind: {
+              path: "$flags",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $lookup: {
+              from: "users",
+              localField: "flags.user",
+              foreignField: "_id",
+              as: "flags.userDetails",
+            },
+          },
+          {
+            $unwind: {
+              path: "$flags.userDetails",
+              preserveNullAndEmptyArrays: true,
+            },
+          },
+          {
+            $addFields: {
+              "flags.user._id": "$flags.userDetails._id",
+              "flags.user.firstName": "$flags.userDetails.firstName",
+              "flags.user.lastName": "$flags.userDetails.lastName",
             },
           },
           {
@@ -178,6 +201,21 @@ const getAllRecipes = async (req, res, next) => {
               ratings: { $first: "$ratings" },
               image: { $first: "$image" },
               status: { $first: "$status" },
+              flags: {
+                $push: {
+                  $cond: [
+                    {
+                      $and: [
+                        { $ne: ["$flags", null] },
+                        { $ne: ["$flags.user", null] },
+                        { $ne: ["$flags.user._id", null] },
+                      ],
+                    },
+                    "$flags",
+                    "$$REMOVE",
+                  ],
+                },
+              },
               comments: {
                 $push: {
                   $cond: [
@@ -185,16 +223,10 @@ const getAllRecipes = async (req, res, next) => {
                       $and: [
                         { $ne: ["$comments", null] },
                         {
-                          $ne: [
-                            "$comments.user",
-                            null,
-                          ],
+                          $ne: ["$comments.user", null],
                         },
                         {
-                          $ne: [
-                            "$comments.user._id",
-                            null,
-                          ],
+                          $ne: ["$comments.user._id", null],
                         },
                       ],
                     },
@@ -229,6 +261,24 @@ const getAllRecipes = async (req, res, next) => {
                     date: "$$comment.date",
                     user: "$$comment.user",
                   },
+                },
+              },
+              flags: {
+                $cond: {
+                  if: { $isArray: "$flags" },
+                  then: {
+                    $map: {
+                      input: "$flags",
+                      as: "flag",
+                      in: {
+                        _id: "$$flag._id",
+                        message: "$$flag.message",
+                        date: "$$flag.date",
+                        user: "$$flag.user",
+                      },
+                    },
+                  },
+                  else: [],
                 },
               },
             },
@@ -297,7 +347,7 @@ const getFavouriteRecipes = async (req, res, next) => {
     // Return empty response with correct format
     res.status(200).send({
       recipes: [],
-      totalCount: 0
+      totalCount: 0,
     });
     return;
   }
@@ -362,9 +412,7 @@ const getFavouriteRecipes = async (req, res, next) => {
   }
 
   const aggregationPipeline = [
-    ...(matchConditions.length
-      ? [{ $match: { $and: matchConditions } }]
-      : []),
+    ...(matchConditions.length ? [{ $match: { $and: matchConditions } }] : []),
     {
       $addFields: {
         cookingTimeNum: { $toInt: "$cookingTime" },
@@ -427,7 +475,7 @@ const getFavouriteRecipes = async (req, res, next) => {
     const recipes = await Recipe.aggregate(aggregationPipeline);
     res.status(200).send({
       recipes: recipes,
-      totalCount: recipes.length
+      totalCount: recipes.length,
     });
   } catch (error) {
     next(error);
@@ -442,7 +490,7 @@ const getOwnRecipes = async (req, res, next) => {
       .populate("ratings", "rating");
     res.status(200).send({
       recipes: recipes,
-      totalCount: recipes.length
+      totalCount: recipes.length,
     });
   } catch (error) {
     next(error);
@@ -510,29 +558,32 @@ const getRecipe = async (req, res, next) => {
       .populate("ratings", "rating")
       .lean();
 
-    if (!recipe)
-      return res.status(404).json({ message: "Recipe not found" });
+    if (!recipe) return res.status(404).json({ message: "Recipe not found" });
 
     // Handle old format recipes where ingredients are just IDs
     if (recipe.ingredients && recipe.ingredients.length > 0) {
       // Check if this is an old format recipe (ingredients are just IDs)
-      const isOldFormat = recipe.ingredients.some(ing => typeof ing === 'string' || !ing.ingredient);
+      const isOldFormat = recipe.ingredients.some(
+        (ing) => typeof ing === "string" || !ing.ingredient
+      );
 
       if (isOldFormat) {
         // Get all ingredient IDs
-        const ingredientIds = recipe.ingredients.map(ing =>
-          typeof ing === 'string' ? ing : (ing.ingredient || ing._id)
+        const ingredientIds = recipe.ingredients.map((ing) =>
+          typeof ing === "string" ? ing : ing.ingredient || ing._id
         );
 
         // Fetch all ingredients at once
-        const ingredients = await Ingredient.find({ _id: { $in: ingredientIds } });
+        const ingredients = await Ingredient.find({
+          _id: { $in: ingredientIds },
+        });
 
         // Map the ingredients to the correct format
-        recipe.ingredients = ingredients.map(ing => ({
+        recipe.ingredients = ingredients.map((ing) => ({
           ingredient: {
             _id: ing._id,
-            ingredientName: ing.ingredientName
-          }
+            ingredientName: ing.ingredientName,
+          },
         }));
       }
     }
@@ -577,9 +628,7 @@ const searchRecipesByIngredients = async (req, res, next) => {
       {
         $match: {
           "ingredientDetails.ingredientName": {
-            $in: ingredients.map(
-              (ingredient) => new RegExp(ingredient, "i")
-            ),
+            $in: ingredients.map((ingredient) => new RegExp(ingredient, "i")),
           },
         },
       },
@@ -631,13 +680,15 @@ const addRecipe = async (req, res, next) => {
     }
 
     // Validate ingredients format and existence
-    const ingredientIds = ingredients.map(ing => ing.ingredient._id);
+    const ingredientIds = ingredients.map((ing) => ing.ingredient._id);
     const validIngredients = await Ingredient.find({
-      _id: { $in: ingredientIds }
+      _id: { $in: ingredientIds },
     });
 
     if (validIngredients.length !== ingredientIds.length) {
-      return res.status(400).json({ message: "One or more ingredients are invalid" });
+      return res
+        .status(400)
+        .json({ message: "One or more ingredients are invalid" });
     }
 
     // Validate category
@@ -653,17 +704,17 @@ const addRecipe = async (req, res, next) => {
       description,
       difficultyLevel,
       cookingTime,
-      ingredients: ingredients.map(ing => ({
+      ingredients: ingredients.map((ing) => ({
         ingredient: ing.ingredient._id,
         quantity: {
           amount: ing.quantity.amount,
-          unit: ing.quantity.unit
-        }
+          unit: ing.quantity.unit,
+        },
       })),
       categories: categories, // Use the category IDs directly
       instructions,
       status,
-      author: req.user
+      author: req.user,
     });
 
     await recipe.save();
@@ -774,9 +825,7 @@ rateRecipe = async (req, res, next) => {
     if (existingRating) {
       existingRating.rating = rating;
       await recipe.save();
-      return res
-        .status(200)
-        .json({ message: "Rating updated successfully." });
+      return res.status(200).json({ message: "Rating updated successfully." });
     }
 
     // If user had not previously rated, add the new rating
@@ -788,8 +837,6 @@ rateRecipe = async (req, res, next) => {
     next(error);
   }
 };
-
-
 
 const deleteRecipe = async (req, res, next) => {
   try {
@@ -833,7 +880,6 @@ const addComment = async (req, res, next) => {
     next(error);
   }
 };
-
 
 const flagRecipe = async (req, res, next) => {
   try {
@@ -897,9 +943,7 @@ const deleteFlag = async (req, res, next) => {
       return res.status(404).json({ message: "Recipe not found." });
     }
 
-    const flagIndex = recipe.flags.findIndex((flag) =>
-      flag._id.equals(flagId)
-    );
+    const flagIndex = recipe.flags.findIndex((flag) => flag._id.equals(flagId));
 
     if (flagIndex === -1) {
       return res.status(404).json({ message: "Flag not found." });
@@ -917,10 +961,7 @@ const deleteFlag = async (req, res, next) => {
 
 const toggleFavoriteRecipe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user).populate(
-      "roleId",
-      "roleName"
-    );
+    const user = await User.findById(req.user).populate("roleId", "roleName");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -968,17 +1009,17 @@ const addRecentlyViewed = async (req, res, next) => {
     const { recipeId } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(recipeId)) {
-      return res.status(400).json({ message: 'Invalid recipe ID' });
+      return res.status(400).json({ message: "Invalid recipe ID" });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     const recipeObjectId = new mongoose.Types.ObjectId(recipeId);
 
-    if (!user.recentlyViewed.some(id => id.equals(recipeObjectId))) {
+    if (!user.recentlyViewed.some((id) => id.equals(recipeObjectId))) {
       user.recentlyViewed.push(recipeObjectId);
       if (user.recentlyViewed.length > 4) {
         user.recentlyViewed.shift();
@@ -986,10 +1027,9 @@ const addRecentlyViewed = async (req, res, next) => {
       await user.save();
     }
 
-    res.status(200).json({ message: 'Recipe added to recently viewed' });
-
+    res.status(200).json({ message: "Recipe added to recently viewed" });
   } catch (error) {
-    console.error('Error adding to recently viewed:', error);
+    console.error("Error adding to recently viewed:", error);
     next(error);
   }
 };
@@ -999,20 +1039,19 @@ const getRecentlyViewed = async (req, res, next) => {
     const userId = req.user;
 
     const user = await User.findById(userId).populate({
-      path: 'recentlyViewed',
+      path: "recentlyViewed",
       populate: {
-        path: 'author',
-        select: 'firstName'
-      }
+        path: "author",
+        select: "firstName",
+      },
     });
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res.status(200).send(user.recentlyViewed);
-
   } catch (error) {
-    console.error('Error fetching recently viewed:', error);
+    console.error("Error fetching recently viewed:", error);
     next(error);
   }
 };
@@ -1023,16 +1062,15 @@ const clearRecentlyViewed = async (req, res, next) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     user.recentlyViewed = [];
     await user.save();
 
-    res.status(200).json({ message: 'Recently viewed history cleared' });
-
+    res.status(200).json({ message: "Recently viewed history cleared" });
   } catch (error) {
-    console.error('Error clearing recently viewed:', error);
+    console.error("Error clearing recently viewed:", error);
     next(error);
   }
 };
