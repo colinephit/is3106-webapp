@@ -49,11 +49,13 @@ const getAllRecipes = async (req, res, next) => {
 
   if (Array.isArray(ingredients) && ingredients.length > 0) {
     matchConditions.push({
-      ingredients: {
-        $all: ingredients.map(
-          (ingredient) => new mongoose.Types.ObjectId(ingredient._id)
-        ),
-      },
+      $and: ingredients.map((ingredient) => ({
+        ingredients: {
+          $elemMatch: {
+            ingredient: new mongoose.Types.ObjectId(ingredient._id),
+          },
+        },
+      })),
     });
   }
 
@@ -381,11 +383,13 @@ const getFavouriteRecipes = async (req, res, next) => {
 
   if (Array.isArray(ingredients) && ingredients.length > 0) {
     matchConditions.push({
-      ingredients: {
-        $all: ingredients.map(
-          (ingredient) => new mongoose.Types.ObjectId(ingredient._id)
-        ),
-      },
+      $and: ingredients.map((ingredient) => ({
+        ingredients: {
+          $elemMatch: {
+            ingredient: new mongoose.Types.ObjectId(ingredient._id),
+          },
+        },
+      })),
     });
   }
 
