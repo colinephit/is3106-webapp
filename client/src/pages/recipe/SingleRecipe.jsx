@@ -106,6 +106,7 @@ const SingleRecipe = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [message, setMessage] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false); 
 
   const handleOpenModal = () => {
     if (!user) {
@@ -199,12 +200,23 @@ const SingleRecipe = () => {
   };
 
   const handleMenuDelete = () => {
-    if (window.confirm("Are you sure you want to delete?")) {
-      deleteRecipe(data?._id);
-      navigate("/recipe");
-    }
-    setAnchorEl(null);
+    setAnchorEl(null); // close menu
+    setShowDeleteModal(true); // open confirmation modal
   };
+
+  const confirmDeleteRecipe = async () => {
+    try {
+      await toast.promise(deleteRecipe(data?._id).unwrap(), {
+        pending: "Deleting recipe...",
+        success: "Recipe successfully deleted",
+        error: "Failed to delete recipe",
+      });
+      setShowDeleteModal(false);
+      navigate("/recipe");
+    } catch (error) {
+      console.error("Error deleting recipe:", error);
+    }
+  };  
 
   const handlePublish = async () => {
     try {
@@ -262,12 +274,13 @@ const SingleRecipe = () => {
                 </h2>
                 {data?.status && (
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-semibold max-sm:px-2 max-sm:py-1 max-sm:text-xs ${data.status === "Published"
-                      ? "bg-green-200 text-green-800"
-                      : data.status === "Draft"
+                    className={`px-3 py-1 rounded-full text-sm font-semibold max-sm:px-2 max-sm:py-1 max-sm:text-xs ${
+                      data.status === "Published"
+                        ? "bg-green-200 text-green-800"
+                        : data.status === "Draft"
                         ? "bg-yellow-200 text-yellow-800"
                         : "bg-gray-200 text-gray-800" // Default color
-                      }`}
+                    }`}
                   >
                     {data.status}
                   </span>
@@ -382,10 +395,11 @@ const SingleRecipe = () => {
                             Cancel
                           </button>
                           <button
-                            className={`py-2 px-4 rounded-md ${!message.trim() || !isUserLoggedIn
-                              ? "bg-gray-400 text-gray-500 cursor-not-allowed"
-                              : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"
-                              }`}
+                            className={`py-2 px-4 rounded-md ${
+                              !message.trim() || !isUserLoggedIn
+                                ? "bg-gray-400 text-gray-500 cursor-not-allowed"
+                                : "bg-red-500 hover:bg-red-600 text-white cursor-pointer"
+                            }`}
                             onClick={handleFlagRecipe}
                             disabled={!message.trim() || !isUserLoggedIn}
                           >
@@ -435,23 +449,14 @@ const SingleRecipe = () => {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="basis-1/3 flex flex-col gap-4 border-b-2 md:border-b-0 pb-4 md:pb-0 md:border-r-2 border-gray-200 items-center">
               <h3 className="font-bold text-2xl">Ingredients</h3>
-              {console.log("Full recipe data:", data)}
-              {console.log("Ingredients array:", data?.ingredients)}
+              {console.log("Ingredients Data:", data?.ingredients)}{" "}
+              {/* Log ingredients */}
               <ol className="flex flex-col gap-2 list-decimal ml-5">
-                {data?.ingredients?.map((ingredient, i) => {
-                  console.log("Individual ingredient:", ingredient);
-                  return (
-                    <li key={`ingredient-${i + 1}`}>
-                      {typeof ingredient === 'string' ? (
-                        ingredient
-                      ) : ingredient.quantity ? (
-                        `${ingredient.quantity.amount} ${ingredient.quantity.unit} of ${ingredient.ingredient?.ingredientName}`
-                      ) : (
-                        ingredient.ingredientName || ingredient.ingredient?.ingredientName || ingredient
-                      )}
-                    </li>
-                  );
-                })}
+                {data?.ingredients?.map((ingredient, i) => (
+                  <li key={`ingredient-${i + 1}`}>
+                    {ingredient.ingredientName}
+                  </li>
+                ))}
               </ol>
             </div>
             {/* Recipe Instructions */}
@@ -542,6 +547,32 @@ const SingleRecipe = () => {
               <NoData text={"Comments"} />
             )}
           </div>
+
+          {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+              <h2 className="text-xl font-semibold mb-4 text-red-600">Confirm Deletion</h2>
+              <p className="mb-6 text-gray-700">
+                Are you sure you want to delete this recipe? This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  className="bg-gray-300 hover:bg-gray-400 text-black py-2 px-4 rounded-md"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md"
+                  onClick={confirmDeleteRecipe}
+                >
+                  Yes, Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         </section>
       )}
     </>
