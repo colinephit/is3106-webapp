@@ -759,35 +759,31 @@ const publishRecipe = async (req, res, next) => {
 const rateRecipe = async (req, res, next) => {
   try {
     const { rating } = req.body;
+    const userId = req.user.userId || req.user; // support either style
 
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) {
       return res.status(404).json({ message: "Recipe not found." });
     }
 
-    // Check if the user has already rated this recipe
+    //Check if the user has already rated this recipe
     const existingRating = recipe.ratings.find(
-      (rate) => rate.user.equals(req.user) // Check if the user has rated this recipe
+      (rate) => rate.user.toString() === userId.toString()
     );
 
-    // If the user has already rated, update the rating
     if (existingRating) {
       existingRating.rating = rating;
-      await recipe.save();
-      return res
-        .status(200)
-        .json({ message: "Rating updated successfully." });
+    } else {
+      recipe.ratings.push({ user: userId, rating });
     }
 
-    // If user had not previously rated, add the new rating
-    recipe.ratings.push({ user: req.user, rating: rating });
     await recipe.save();
-
-    res.status(201).json({ message: "Rating added successfully." });
+    res.status(200).json({ message: "Rating saved successfully." });
   } catch (error) {
     next(error);
   }
 };
+
 
 const deleteRecipe = async (req, res, next) => {
   try {
@@ -812,8 +808,8 @@ const deleteRecipe = async (req, res, next) => {
 const addComment = async (req, res, next) => {
   try {
     const { comment } = req.body;
+    const userId = req.user.userId || req.user;
 
-    // Validate userId and commentText
     if (!comment) {
       return res.status(400).json({ message: "Comment is required." });
     }
@@ -823,8 +819,7 @@ const addComment = async (req, res, next) => {
       return res.status(404).json({ message: "Recipe not found." });
     }
 
-    // Add the new comment
-    recipe.comments.push({ user: req.user, comment });
+    recipe.comments.push({ user: userId, comment });
     await recipe.save();
 
     res.status(201).json({ message: "Comment added successfully." });
@@ -832,6 +827,7 @@ const addComment = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const flagRecipe = async (req, res, next) => {
   try {
@@ -1000,7 +996,7 @@ const getRecentlyViewed = async (req, res, next) => {
       path: 'recentlyViewed',
       populate: {
         path: 'author',
-        select: 'firstName' 
+        select: 'firstName'
       }
     });
     if (!user) {
