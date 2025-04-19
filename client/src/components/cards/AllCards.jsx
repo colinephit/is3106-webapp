@@ -9,8 +9,9 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import Typography from "@mui/material/Typography";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Pagination from "../../pages/recipe/Pagination";
+import { useMemo } from "react";
 
-const Index = ({ mainTitle, tagline, type, data, onFilterChange, count }) => {
+const Index = ({ mainTitle, tagline, type, data, onFilterChange, count, forceAllFavorite = false}) => {
     const [ingredients, setIngredients] = useState([]);
     const [currentIngredient, setCurrentIngredient] = useState("");
     const [ingredientSuggestions, setIngredientSuggestions] = useState([]);
@@ -123,7 +124,25 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange, count }) => {
     const timeValueText = (value) => `${value} min`;
     const difficultyValueText = (value) => `${value}`;
 
-    const displayData = ingredients.length === 0 ? data : [];
+    const sortedData = useMemo(() => {
+        if (!data) return [];
+        const sorted = [...data];
+    
+        switch (filter.sort) {
+            case "1":
+                return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            case "2":
+                return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            case "3":
+                return sorted.sort((a, b) => b.rating - a.rating);
+            case "4":
+                return sorted.sort((a, b) => a.rating - b.rating);
+            default:
+                return sorted;
+        }
+    }, [data, filter.sort]);
+
+    const displayData = ingredients.length === 0 ? sortedData : [];
 
     return (
         <section className="box flex flex-col items-center">
@@ -425,11 +444,12 @@ const Index = ({ mainTitle, tagline, type, data, onFilterChange, count }) => {
                 {displayData?.length ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
                         {displayData?.map((singleData) => (
-                            <SingleCard
-                                key={singleData._id}
-                                singleData={singleData}
-                                type={type}
-                            />
+                        <SingleCard
+                            key={singleData._id}
+                            singleData={singleData}
+                            type={type}
+                            forceFavorite={forceAllFavorite}
+                        />
                         ))}
                     </div>
                 ) : (

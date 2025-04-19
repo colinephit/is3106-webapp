@@ -10,14 +10,20 @@ import { setCredentials } from "../../features/auth/authSlice";
 import { useDispatch } from "react-redux";
 import ShareButton from "../shareButton/ShareButton";
 import useAuth from "../../hooks/useAuth";
+import { useState } from "react";
 
-const SingleCard = ({ singleData, type }) => {
+const SingleCard = ({ singleData, type, forceFavorite = null }) => {
   const user = useAuth();
 
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
+
   const [toggleFavorite] = useToggleFavoriteMutation();
+  const [isFavorite, setIsFavorite] = useState(() =>
+    forceFavorite !== null
+      ? forceFavorite
+      : user?.favorites?.includes(singleData._id) || false
+  );
 
   const formattedDate = dateFormat(singleData?.createdAt);
   console.log(singleData);
@@ -38,7 +44,10 @@ const SingleCard = ({ singleData, type }) => {
         toast.error("You must sign in first");
         return navigate("/auth/signin");
       }
-      const userData = await toast.promise(
+  
+      setIsFavorite((prev) => !prev);
+  
+      await toast.promise(
         toggleFavorite({ recipeId: singleData._id }).unwrap(),
         {
           pending: "Please wait...",
@@ -46,13 +55,13 @@ const SingleCard = ({ singleData, type }) => {
           error: "Unable to update favorites",
         }
       );
-      dispatch(setCredentials({ ...userData }));
     } catch (error) {
-      toast.error(error.data);
+      setIsFavorite((prev) => !prev);
+      toast.error(error?.data || "Something went wrong");
       console.error(error);
     }
   };
-
+  
   return (
     <div className="flex flex-col gap-1 justify-between shadow hover:shadow-lg rounded h-full">
       {/* Card Top */}
@@ -62,7 +71,7 @@ const SingleCard = ({ singleData, type }) => {
           {/* Favorite & share button */}
           {type === "recipe" && (
             <div className="absolute top-2 right-0 flex flex-col gap-2 p-2 bg-light rounded-l-lg z-10">
-              {user?.favorites?.some((ele) => ele === singleData._id) ? (
+              {isFavorite ? (
                 <AiFillHeart
                   className="text-2xl text-red-500 cursor-pointer"
                   onClick={handleToggleFavorite}
@@ -98,10 +107,10 @@ const SingleCard = ({ singleData, type }) => {
             {singleData?.status && (
               <span
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${singleData.status === "Published"
-                  ? "bg-green-200 text-green-800"
-                  : singleData.status === "Draft"
-                    ? "bg-yellow-200 text-yellow-800"
-                    : "bg-gray-200 text-gray-800" // Default color
+                    ? "bg-green-200 text-green-800"
+                    : singleData.status === "Draft"
+                      ? "bg-yellow-200 text-yellow-800"
+                      : "bg-gray-200 text-gray-800" // Default color
                   }`}
               >
                 {singleData.status}
