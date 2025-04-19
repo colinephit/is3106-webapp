@@ -452,11 +452,20 @@ const SingleRecipe = () => {
               {console.log("Ingredients Data:", data?.ingredients)}{" "}
               {/* Log ingredients */}
               <ol className="flex flex-col gap-2 list-decimal ml-5">
-                {data?.ingredients?.map((ingredient, i) => (
-                  <li key={`ingredient-${i + 1}`}>
-                    {ingredient.ingredientName}
-                  </li>
-                ))}
+              {data?.ingredients?.map((ingredient, i) => {
+                   console.log("Individual ingredient:", ingredient);
+                   return (
+                     <li key={`ingredient-${i + 1}`}>
+                       {typeof ingredient === 'string' ? (
+                         ingredient
+                       ) : ingredient.quantity ? (
+                         `${ingredient.quantity.amount} ${ingredient.quantity.unit} of ${ingredient.ingredient?.ingredientName}`
+                       ) : (
+                         ingredient.ingredientName || ingredient.ingredient?.ingredientName || ingredient
+                       )}
+                     </li>
+                   );
+                 })}
               </ol>
             </div>
             {/* Recipe Instructions */}
