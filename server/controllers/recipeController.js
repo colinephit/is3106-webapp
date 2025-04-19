@@ -756,33 +756,39 @@ const publishRecipe = async (req, res, next) => {
   }
 };
 
-const rateRecipe = async (req, res, next) => {
+rateRecipe = async (req, res, next) => {
   try {
     const { rating } = req.body;
-    const userId = req.user.userId || req.user; // support either style
 
     const recipe = await Recipe.findById(req.params.id);
     if (!recipe) {
       return res.status(404).json({ message: "Recipe not found." });
     }
 
-    //Check if the user has already rated this recipe
+    // Check if the user has already rated this recipe
     const existingRating = recipe.ratings.find(
-      (rate) => rate.user.toString() === userId.toString()
+      (rate) => rate.user.equals(req.user) // Check if the user has rated this recipe
     );
 
+    // If the user has already rated, update the rating
     if (existingRating) {
       existingRating.rating = rating;
-    } else {
-      recipe.ratings.push({ user: userId, rating });
+      await recipe.save();
+      return res
+        .status(200)
+        .json({ message: "Rating updated successfully." });
     }
 
+    // If user had not previously rated, add the new rating
+    recipe.ratings.push({ user: req.user, rating: rating });
     await recipe.save();
-    res.status(200).json({ message: "Rating saved successfully." });
+
+    res.status(201).json({ message: "Rating added successfully." });
   } catch (error) {
     next(error);
   }
 };
+
 
 
 const deleteRecipe = async (req, res, next) => {
