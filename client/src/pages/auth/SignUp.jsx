@@ -51,6 +51,10 @@ const SignUp = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate('/');
+  };
+
   return (
     <section className="flex w-full h-screen">
       {/* Sign up form container */}
@@ -140,6 +144,11 @@ const SignUp = () => {
             loading={isLoading}
           />
         </form>
+        <Button
+          content="Browse as Guest"
+          handleClick={handleCancel}
+          customCss="mt-4 rounded-lg bg-gray-300 text-gray-700 hover:bg-gray-400"
+        />
       </div>
       {/* Sign up banner image */}
       <div className="hidden md:block basis-1/2 bg-login bg-no-repeat bg-cover bg-center"></div>

@@ -49,11 +49,13 @@ const getAllRecipes = async (req, res, next) => {
 
   if (Array.isArray(ingredients) && ingredients.length > 0) {
     matchConditions.push({
-      ingredients: {
-        $all: ingredients.map(
-          (ingredient) => new mongoose.Types.ObjectId(ingredient._id)
-        ),
-      },
+      $and: ingredients.map((ingredient) => ({
+        ingredients: {
+          $elemMatch: {
+            ingredient: new mongoose.Types.ObjectId(ingredient._id),
+          },
+        },
+      })),
     });
   }
 
@@ -264,15 +266,21 @@ const getAllRecipes = async (req, res, next) => {
                 },
               },
               flags: {
-                $map: {
-                  input: "$flags",
-                  as: "flag",
-                  in: {
-                    _id: "$$flag._id",
-                    message: "$$flag.message",
-                    date: "$$flag.date",
-                    user: "$$flag.user",
+                $cond: {
+                  if: { $isArray: "$flags" },
+                  then: {
+                    $map: {
+                      input: "$flags",
+                      as: "flag",
+                      in: {
+                        _id: "$$flag._id",
+                        message: "$$flag.message",
+                        date: "$$flag.date",
+                        user: "$$flag.user",
+                      },
+                    },
                   },
+                  else: [],
                 },
               },
             },
@@ -375,11 +383,13 @@ const getFavouriteRecipes = async (req, res, next) => {
 
   if (Array.isArray(ingredients) && ingredients.length > 0) {
     matchConditions.push({
-      ingredients: {
-        $all: ingredients.map(
-          (ingredient) => new mongoose.Types.ObjectId(ingredient._id)
-        ),
-      },
+      $and: ingredients.map((ingredient) => ({
+        ingredients: {
+          $elemMatch: {
+            ingredient: new mongoose.Types.ObjectId(ingredient._id),
+          },
+        },
+      })),
     });
   }
 
@@ -547,12 +557,40 @@ const getRecipe = async (req, res, next) => {
     const recipe = await Recipe.findOne({ _id: req.params.id })
       .populate("author", "firstName lastName")
       .populate("comments.user", "firstName lastName profileImage")
-      .populate("ingredients")
+      .populate("ingredients.ingredient", "ingredientName")
       .populate("categories")
       .populate("ratings", "rating")
       .lean();
 
     if (!recipe) return res.status(404).json({ message: "Recipe not found" });
+
+    // Handle old format recipes where ingredients are just IDs
+    if (recipe.ingredients && recipe.ingredients.length > 0) {
+      // Check if this is an old format recipe (ingredients are just IDs)
+      const isOldFormat = recipe.ingredients.some(
+        (ing) => typeof ing === "string" || !ing.ingredient
+      );
+
+      if (isOldFormat) {
+        // Get all ingredient IDs
+        const ingredientIds = recipe.ingredients.map((ing) =>
+          typeof ing === "string" ? ing : ing.ingredient || ing._id
+        );
+
+        // Fetch all ingredients at once
+        const ingredients = await Ingredient.find({
+          _id: { $in: ingredientIds },
+        });
+
+        // Map the ingredients to the correct format
+        recipe.ingredients = ingredients.map((ing) => ({
+          ingredient: {
+            _id: ing._id,
+            ingredientName: ing.ingredientName,
+          },
+        }));
+      }
+    }
 
     res.status(200).send(recipe);
   } catch (error) {
@@ -628,49 +666,65 @@ const addRecipe = async (req, res, next) => {
       categories,
       instructions,
       status,
-      // additionalInformation,
     } = req.body;
+
+    // Validate required fields
     if (
       !recipeName ||
       !image ||
       !description ||
       !difficultyLevel ||
       !cookingTime ||
-      !ingredients.length ||
-      !categories.length ||
-      !instructions.length ||
+      !ingredients?.length ||
+      !categories?.length ||
+      !instructions?.length ||
       !status
-      // !additionalInformation
     ) {
       return res.status(422).json({ message: "Insufficient data" });
     }
-    // to validate that all ingredient IDs exist
+
+    // Validate ingredients format and existence
+    const ingredientIds = ingredients.map((ing) => ing.ingredient._id);
     const validIngredients = await Ingredient.find({
-      _id: { $in: ingredients },
+      _id: { $in: ingredientIds },
     });
 
-    if (validIngredients.length !== ingredients.length) {
+    if (validIngredients.length !== ingredientIds.length) {
       return res
         .status(400)
         .json({ message: "One or more ingredients are invalid" });
     }
 
-    // to validate category ID
+    // Validate category
     const validCategory = await Category.findById(categories[0]);
     if (!validCategory) {
       return res.status(400).json({ message: "Invalid category" });
     }
 
-    //  to create recipe with all verified ingredient IDs and category ID
+    // Create recipe with the new ingredient format
     const recipe = new Recipe({
-      ...req.body,
-      ingredients: validIngredients.map((ingredi) => ingredi._id),
-      categories: [validCategory._id],
+      recipeName,
+      image,
+      description,
+      difficultyLevel,
+      cookingTime,
+      ingredients: ingredients.map((ing) => ({
+        ingredient: ing.ingredient._id,
+        quantity: {
+          amount: ing.quantity.amount,
+          unit: ing.quantity.unit,
+        },
+      })),
+      categories: categories, // Use the category IDs directly
+      instructions,
+      status,
       author: req.user,
     });
+
     await recipe.save();
     res.status(201).json({ success: "Recipe added successfully" });
   } catch (error) {
+    console.error("Error adding recipe:", error);
     next(error);
   }
 };
@@ -757,7 +811,7 @@ const publishRecipe = async (req, res, next) => {
   }
 };
 
-const rateRecipe = async (req, res, next) => {
+rateRecipe = async (req, res, next) => {
   try {
     const { rating } = req.body;
 
@@ -811,8 +865,8 @@ const deleteRecipe = async (req, res, next) => {
 const addComment = async (req, res, next) => {
   try {
     const { comment } = req.body;
+    const userId = req.user.userId || req.user;
 
-    // Validate userId and commentText
     if (!comment) {
       return res.status(400).json({ message: "Comment is required." });
     }
@@ -822,8 +876,7 @@ const addComment = async (req, res, next) => {
       return res.status(404).json({ message: "Recipe not found." });
     }
 
-    // Add the new comment
-    recipe.comments.push({ user: req.user, comment });
+    recipe.comments.push({ user: userId, comment });
     await recipe.save();
 
     res.status(201).json({ message: "Comment added successfully." });
@@ -989,7 +1042,13 @@ const getRecentlyViewed = async (req, res, next) => {
   try {
     const userId = req.user;
 
-    const user = await User.findById(userId).populate("recentlyViewed");
+    const user = await User.findById(userId).populate({
+      path: "recentlyViewed",
+      populate: {
+        path: "author",
+        select: "firstName",
+      },
+    });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

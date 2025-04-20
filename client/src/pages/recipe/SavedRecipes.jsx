@@ -45,6 +45,7 @@ const SavedRecipes = () => {
                 onFilterChange={handleFilterChange}
                 showFilterMessage={false}
                 count={allRecipes?.totalCount || 0}
+                forceAllFavorite={true}
             />
         </div>
     );

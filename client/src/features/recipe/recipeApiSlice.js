@@ -151,14 +151,14 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     getRecentlyViewed: builder.query({
       query: () => ({
-        url: "/recipes/recent", 
+        url: "/recipes/recent",
         method: "GET",
       }),
-      providesTags: ["RecentlyViewed"], 
+      providesTags: ["RecentlyViewed"],
     }),
     addRecentlyViewed: builder.mutation({
       query: (recipeId) => ({
-        url: "/recipes/recent", 
+        url: "/recipes/recent",
         method: "POST",
         body: { recipeId },
       }),
@@ -166,7 +166,7 @@ export const recipeApiSlice = apiSlice.injectEndpoints({
     }),
     clearRecentlyViewed: builder.mutation({
       query: () => ({
-        url: "/recipes/recent", 
+        url: "/recipes/recent",
         method: "DELETE",
       }),
       invalidatesTags: ["RecentlyViewed"],

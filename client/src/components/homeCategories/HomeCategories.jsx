@@ -2,8 +2,16 @@ import React from "react";
 import { Button, ComponentLoading, NoData, SingleCard } from "..";
 import { BsArrowUpRight } from "react-icons/bs";
 import { Link } from "react-router-dom";
+import { useMemo } from "react";
 
 const HomeCategories = ({ title, data, isLoading, filterUsed, showFilterMessage = false }) => {
+
+  const sortedData = useMemo(() => {
+    if (!data) return [];
+    const sorted = [...data];
+    return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)); // newest first
+  }, [data]);
+  
   return (
     <>
       {isLoading ? (
@@ -31,11 +39,12 @@ const HomeCategories = ({ title, data, isLoading, filterUsed, showFilterMessage 
 
           {data?.length ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10 w-full">
-              {data.slice(0, 4).map((singleData) => (
+              {sortedData.slice(0, 4).map((singleData) => (
                 <div key={singleData._id} className="w-full">
                   <SingleCard
                     singleData={singleData}
                     type={title}
+                    forceFavorite={null}
                   />
                 </div>
               ))}
