@@ -8,7 +8,6 @@ import { HiOutlineUsers, HiOutlineLogout } from "react-icons/hi";
 import {
   IoRestaurantOutline,
   IoFolderOutline,
-  IoFlagOutline,
 } from "react-icons/io5";
 import { Logo } from "..";
 import { Avatar as MuiAvatar } from "@mui/material";

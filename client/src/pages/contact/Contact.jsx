@@ -14,7 +14,7 @@ import useTitle from "../../hooks/useTitle";
 
 const Contact = () => {
   const user = useAuth();
-  useTitle("Recipen - Contact Us");
+  useTitle("RecipeShare - Contact Us");
 
   const [formDetails, setFormDetails] = useState({
     firstName: "",
