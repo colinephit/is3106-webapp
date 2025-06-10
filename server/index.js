@@ -14,9 +14,15 @@ const port = process.env.PORT || 4000;
 
 // CORS middleware
 app.use(credentials);
+
+const allowedOrigins = [
+  "http://localhost:5173", // local dev
+  "https://is3106-webapp.onrender.com", // deployed frontend
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
