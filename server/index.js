@@ -7,26 +7,25 @@ const credentials = require("./middleware/credentials");
 const cookieParser = require("cookie-parser");
 const mongoose = require("mongoose");
 const connectDB = require("./db/conn");
+const path = require("path");
 
 const app = express();
 const port = process.env.PORT || 4000;
 
-// cors middleware
+// CORS middleware
 app.use(credentials);
 app.use(
   cors({
-    origin: "http://localhost:5173", // Allow frontend to access backend
-    credentials: true, // If using cookies, authentication, etc.
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
   })
 );
 
 app.use(express.urlencoded({ extended: false }));
-
 app.use(cookieParser());
-
 app.use(express.json());
 
-// route middleware
+// API routes
 app.use("/auth", require("./routes/authRoutes"));
 app.use("/users", require("./routes/userRoutes"));
 app.use("/roles", require("./routes/roleRoutes"));
@@ -35,6 +34,13 @@ app.use("/upload", require("./routes/imageRoutes"));
 app.use("/ingredient", require("./routes/ingredientRoutes"));
 app.use("/category", require("./routes/categoryRoutes"));
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "public")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Error handler
 app.use(errorHandler);
 
 connectDB()
@@ -43,5 +49,5 @@ connectDB()
     app.listen(port, () => console.log(`Server running on port ${port}`));
   })
   .catch((err) => {
-    console.error(`Error connecting to MongoDB ${err}`);
+    console.error(`Error connecting to MongoDB: ${err}`);
   });
