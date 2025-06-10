@@ -1,0 +1,1 @@
+import{j as s,k as a,L as o,B as n}from"./index-a4cf7745.js";const i=({animation:t,loop:e})=>s.jsxs("section",{className:"flex flex-col gap-4 items-center justify-center",children:[s.jsx(a,{animationData:t,loop:e}),s.jsx(o,{to:"/",children:s.jsx(n,{content:"Back to Home",customCss:"max-w-max rounded-full"})})]});export{i as M};

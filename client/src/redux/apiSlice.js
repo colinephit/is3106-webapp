@@ -3,7 +3,7 @@ import { setCredentials, logOut } from "../features/auth/authSlice";
 import { useNavigate } from "react-router-dom";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: import.meta.env.VITE_SERVER_BASE_URL,
+  baseUrl: import.meta.env.VITE_API_URL,
   credentials: "include",
 
   prepareHeaders: (headers, { getState }) => {
